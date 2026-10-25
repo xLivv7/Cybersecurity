@@ -1,8 +1,10 @@
 # Zadania implementacyjne modułu identyfikacji uwierzytelniania i autoryzacji
 
 Status: w realizacji  
-Wersja: 0.2  
-Data: 2026-10-22  
+Wersja: 0.3
+
+Data: 2026-10-25
+
 Podstawa: [spec.md](spec.md), wersja 0.2, oraz [plan.md](plan.md), wersja 0.1
 
 ## 1. Jak korzystać z listy
@@ -31,13 +33,15 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 
 ### T002 Szkielet Django i konfiguracja środowisk
 
-- [ ] Utworzyć projekt oraz moduły `accounts`, `security` i `documents`.
+- [x] Utworzyć projekt oraz moduły `accounts`, `security` i `documents`.
 
 **Zakres:** przygotować `manage.py`, `config/`, konfiguracje `base`, `local`, `test` i `production`, pakiety modułów, adresy główne oraz katalogi szablonów i zasobów. Włączyć CSRF i sesje bazodanowe. Skonfigurować SQLite z krótkimi transakcjami `IMMEDIATE`, UTC w zapisie i `Europe/Warsaw` w prezentacji. Utworzyć `.env.example` bez prawdziwych sekretów. Nie uruchamiać pierwszej migracji przed T003.
 
 **Zależności:** T001.  
 **Wymagania:** TECH-01, TECH-02, TECH-03, TECH-08, TECH-09.  
 **Gotowe, gdy:** struktura odpowiada planowi, ustawienia testowe są izolowane od lokalnych, a konfiguracja publicznego środowiska wymaga sekretu i jawnych hostów oraz wyłącza debugowanie.
+
+**Wykonano 2026-10-25:** utworzono szkielet Django, pakiety trzech modułów, ustawienia środowisk, punkty wejścia WSGI/ASGI, adresy, szablony i podstawowy CSS. Dodano `.env.example` i ignorowaną konfigurację lokalną z wygenerowanym sekretem. Kontrole Django dla trzech środowisk, 17 testów ustawień i szkieletu oraz izolowane kontrole Ruff zakończyły się sukcesem. Nie uruchamiano migracji i nie powstała lokalna baza. Szczegóły: [wyniki weryfikacji](../../docs/verification.md#t002-szkielet-django-i-konfiguracja-środowisk).
 
 ### T003 Własny użytkownik i pierwsza migracja
 
