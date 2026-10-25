@@ -1,0 +1,14 @@
+# Normalize source files so Ruff sees the same line endings on Windows and Linux.
+* text=auto
+*.py text eol=lf
+*.toml text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+.gitattributes text eol=lf
+.gitignore text eol=lf
+.python-version text eol=lf
+.env.example text eol=lf
+uv.lock text eol=lf

@@ -132,3 +132,38 @@ Przed rozpoczęciem T003 zapisano ukończone T002 w commicie `cf010e6` (`feat: a
 Testy modelu stosują migracje w izolowanej bazie w pamięci. Pełny zestaw uruchomiono poza ograniczeniami środowiska wykonawczego, ponieważ test wywołania asynchronicznego zatrzymywał się w ograniczonym środowisku Windows. Nie zmieniano konfiguracji bezpieczeństwa systemu ani nie korzystano z usług zewnętrznych.
 
 Lokalny plik SQLite był przed zastosowaniem migracji pusty. Nie usuwano ani nie nadpisywano istniejących danych użytkowników. Inicjalizacja konta `ADMIN` i danych demonstracyjnych pozostaje zadaniem T017 oraz T029; T003 przygotowuje ich model i ograniczenia. Nie wykonywano pushowania ani publicznego wdrożenia.
+
+## T004 Podstawa testów i automatycznych kontroli
+
+Data: 2026-10-25
+
+Wynik: zakończone pomyślnie lokalnie; workflow gotowy do pierwszego wykonania na GitHubie
+
+### Zakres wykonanych zmian
+
+- Dodano konfigurację pytest w `pyproject.toml`: katalog `tests`, wzorzec plików, ścisłą kontrolę ustawień i markerów, ścieżkę importów oraz domyślną konfigurację Django `config.settings.test`. Opcja `--ds` w `addopts` ma pierwszeństwo przed odziedziczoną zmienną środowiskową wskazującą inne środowisko.
+- Dodano konfigurację Ruff dla Pythona 3.13: reguły błędów składni, niezdefiniowanych lub nieużywanych nazw, importów i nieużywanych wyłączeń `noqa`, formatowanie oraz wykluczenia lokalnych narzędzi i cache.
+- `.gitattributes` ustala LF dla plików źródłowych i konfiguracji, aby formatowanie nie zależało od domyślnego `core.autocrlf` na Windows. Normalizacja istniejącej migracji nie zmienia jej operacji ani schematu bazy.
+- `tests/conftest.py` zawiera `user_factory`, `admin_factory`, `admin` oraz `clock`. Konta są tworzone przez właściwy manager w izolowanej bazie; fabryki nie nadają domyślnie używalnego hasła ani uprawnień frameworka.
+- Kontrolowany zegar zastępuje `django.utils.timezone.now()` na czas jednego testu. Fabryki pobierają z niego czas utworzenia konta. Istniejący test logicznego usunięcia przesuwa czas o dobę bez oczekiwania i sprawdza zapisane daty oraz dalszą rezerwację loginu.
+- Workflow `.github/workflows/ci.yml` obejmuje push, pull request i ręczne wywołanie. Macierz obejmuje `ubuntu-latest` i `windows-latest`, a każde zadanie ma limit 10 minut.
+- Workflow korzysta z Python 3.13.17 według `.python-version`, uv 0.13.5 i `uv.lock`. Akcje checkout oraz setup-uv są przypięte do konkretnych SHA, uprawnienia ograniczono do odczytu repozytorium, a checkout nie utrwala poświadczeń.
+- Lokalne polecenia w README odpowiadają kontrolom workflow. Działanie aplikacji i zależności nie zostały zmienione.
+
+### Przeprowadzone kontrole
+
+| Kontrola | Wynik |
+|---|---|
+| `uv sync --locked --dev` z dodatkowym lokalnym `--offline` | Zależności zgodne z istniejącym plikiem blokady; 17 zainstalowanych pakietów |
+| `uv run --locked ruff check .` | Brak błędów z konfiguracją projektu |
+| `uv run --locked ruff format --check .` | Formatowanie zgodne z konfiguracją projektu |
+| `uv run --locked python manage.py check --settings=config.settings.test` | Brak problemów |
+| `uv run --locked python manage.py makemigrations --check --dry-run --noinput --settings=config.settings.test` | Brak brakujących migracji |
+| `uv run --locked pytest` bez ręcznego wskazania ustawień | Wszystkie 53 testy zakończone sukcesem |
+| Kolekcja testów przy `DJANGO_SETTINGS_MODULE=config.settings.production` w procesie | Wybrana konfiguracja testowa; zebrano 53 testy bez wymagania produkcyjnego sekretu |
+| SHA-256 lokalnego `db.sqlite3` przed i po kontrolach | Niezmieniony |
+| Walidacja workflow przez actionlint 1.7.12 | Brak błędów składni, wyrażeń i konfiguracji workflow |
+
+Actionlint pobrano z oficjalnego wydania do ignorowanego katalogu `.tools`, a przed uruchomieniem sprawdzono SHA-256 archiwum względem opublikowanego pliku sum kontrolnych. Nie dodano go do zależności aplikacji.
+
+Pełne kontrole lokalne wykonano na Windows, poza ograniczeniami środowiska wykonawczego wymaganymi przez test asynchroniczny. Środowisko Linux i integracja z runnerami GitHub Actions nie były uruchamiane z tego komputera. Nie wykonywano commita ani pushu w ramach T004; zdalny wynik będzie można potwierdzić dopiero po wysłaniu workflow. Lokalnych ustawień `.vscode` nie zmieniano.

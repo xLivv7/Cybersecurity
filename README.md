@@ -75,21 +75,42 @@ uv run --locked python manage.py check --settings=config.settings.test
 
 Punkty wejścia WSGI i ASGI domyślnie używają konfiguracji produkcyjnej, chyba że proces ma już ustawione `DJANGO_SETTINGS_MODULE`. Konfiguracja produkcyjna nie odczytuje `.env`. Rzeczywista konfiguracja serwera HTTPS i zaufanego proxy pozostaje częścią przyszłego wdrożenia.
 
-## Weryfikacja szkieletu
+## Testy i kontrola kodu
+
+Konfiguracja pytest i Ruff znajduje się w `pyproject.toml`. Lokalnie wykonuj te same kontrole co GitHub Actions:
 
 ```powershell
-uv run --locked python -m pytest --ds=config.settings.test tests --basetemp=.tools/pytest -q
-uv run --locked ruff check --isolated --select E4,E7,E9,F,I manage.py config apps tests
-uv run --locked ruff format --isolated --check manage.py config apps tests
+uv sync --locked --dev
+uv run --locked ruff check .
+uv run --locked ruff format --check .
+uv run --locked python manage.py check --settings=config.settings.test
+uv run --locked python manage.py makemigrations --check --dry-run --noinput --settings=config.settings.test
+uv run --locked pytest
 ```
 
-Testy sprawdzają izolację ustawień, obsługę sekretów i hostów, wymuszenie HTTPS, uruchomienie WSGI/ASGI, renderowanie strony bez zapytań do bazy, tryb transakcji SQLite oraz ochronę modelu konta. Migracje modelu są stosowane w izolowanej bazie testowej w pamięci; testy nie korzystają z lokalnej `db.sqlite3`. Kontrole Ruff są na tym etapie niezależne od ustawień narzędzia spoza projektu.
+Pytest domyślnie wybiera `config.settings.test`, także gdy zmienna środowiskowa `DJANGO_SETTINGS_MODULE` wskazuje inne środowisko. Ustawienia testowe nie odczytują `.env`, a migracje są stosowane w izolowanej bazie w pamięci. Testy używają rzeczywistego Argon2id i nie korzystają z lokalnej `db.sqlite3`.
 
-Sprawdzenie zgodności modeli z zapisanymi migracjami:
+Testy sprawdzają izolację ustawień, obsługę sekretów i hostów, wymuszenie HTTPS, uruchomienie WSGI/ASGI, renderowanie strony bez zapytań do bazy, tryb transakcji SQLite oraz ochronę modelu konta. Aby uruchomić tylko testy modelu:
 
 ```powershell
-uv run --locked python manage.py makemigrations --check --dry-run --noinput
+uv run --locked pytest tests/accounts/test_models.py
 ```
+
+Ruff sprawdza i formatuje kod dla Pythona 3.13, z limitem linii 88 znaków. Pomija lokalne narzędzia i cache, również przy wskazaniu ich ścieżek w poleceniu. `.gitattributes` ustala końce linii LF dla źródeł, konfiguracji i dokumentacji, aby kontrole działały tak samo na Windows i Linux.
+
+### Wspólne fixtures
+
+`tests/conftest.py` udostępnia:
+
+- `user_factory`: tworzy konta w izolowanej bazie, z kolejnymi loginami lub wskazanym loginem i rolą. Domyślnie nie ustawia używalnego hasła; podanie `password` korzysta z rzeczywistego hashera.
+- `admin_factory` i `admin`: tworzą chronione konto `ADMIN` w początkowym trybie poświadczeń, bez flag uprzywilejowania frameworka.
+- `clock`: kontroluje `django.utils.timezone.now()`; udostępnia `now()`, `set(świadoma_strefy_data)` i `advance(timedelta(...))`. Po teście oryginalny zegar jest automatycznie przywracany.
+
+Fabryki ustawiają `date_joined` według aktualnego zegara testowego. Kod sprawdzający terminy powinien wywoływać `timezone.now()` przez moduł Django, aby testy mogły sterować czasem bez oczekiwania przez `sleep`. Zegar nie zastępuje funkcji czasu w innych procesach ani całej bibliotece standardowej.
+
+### GitHub Actions
+
+Workflow `.github/workflows/ci.yml` uruchamia się na push, pull request i ręcznie. Na Windows i Linux instaluje Python z `.python-version`, uv 0.13.5 i zależności z `uv.lock`, po czym wykonuje sześć poleceń z bloku powyżej. Używa konfiguracji testowej bez sekretów i przypiętych identyfikatorów akcji. Pierwszy wynik zdalny będzie dostępny w zakładce Actions po wysłaniu workflow do GitHuba.
 
 ## Lokalne narzędzia na Windows jako opcja
 
@@ -120,4 +141,4 @@ $env:UV_PYTHON_INSTALL_DIR = Join-Path (Get-Location) '.tools\python'
 - [Plan techniczny](specs/001-identity-access/plan.md)
 - [Zadania implementacyjne](specs/001-identity-access/tasks.md)
 
-Wspólna konfiguracja pytest, Ruff oraz CI powstanie w T004. [Wyniki weryfikacji](docs/verification.md) opisują kontrole dotychczas wykonanych zadań.
+[Wyniki weryfikacji](docs/verification.md) opisują kontrole dotychczas wykonanych zadań.

@@ -1,7 +1,7 @@
 # Zadania implementacyjne modułu identyfikacji uwierzytelniania i autoryzacji
 
 Status: w realizacji  
-Wersja: 0.4
+Wersja: 0.5
 
 Data: 2026-10-25
 
@@ -57,7 +57,7 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 
 ### T004 Podstawa testów i automatycznych kontroli
 
-- [ ] Przygotować konfigurację pytest, Ruff i początkowy workflow CI.
+- [x] Przygotować konfigurację pytest, Ruff i początkowy workflow CI.
 
 **Zakres:** dodać `tests/conftest.py`, fabryki kont testowych, kontrolowany zegar i konfigurację testów Django. Uruchamiać rzeczywisty Argon2id. Skonfigurować CI do odtworzenia zależności, kontroli stylu, sprawdzenia Django, brakujących migracji i istniejących testów.
 
@@ -65,7 +65,9 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 **Wymagania:** PASS-02, TECH-07, TECH-08.  
 **Gotowe, gdy:** lokalne kontrole i workflow mają te same polecenia, podstawowe testy modelu przechodzą, a testy nie korzystają z lokalnej bazy ani rzeczywistych sekretów.
 
-**Zakończenie E1:** aplikacja ma poprawną konfigurację, własnego użytkownika, powtarzalne środowisko i działające podstawowe kontrole.
+**Wykonano 2026-10-25:** dodano konfigurację pytest i Ruff w `pyproject.toml`, fabryki kont, fixture administratora i kontrolowany zegar w `tests/conftest.py`. Istniejące testy modelu korzystają ze wspólnych fixtures. Dodano politykę końców linii oraz workflow GitHub Actions dla Windows i Linux, z przypiętym Pythonem, uv i akcjami. Wszystkie 53 testy i lokalne odpowiedniki kontroli CI przeszły; lokalna baza pozostała niezmieniona. Workflow zweryfikowano przez actionlint. Pierwsze wykonanie na GitHubie nastąpi po osobnym pushu. Szczegóły: [wyniki weryfikacji](../../docs/verification.md#t004-podstawa-testów-i-automatycznych-kontroli).
+
+**Zakończenie E1:** ukończono 2026-10-25. Aplikacja ma poprawną konfigurację, własnego użytkownika, powtarzalne środowisko i działające lokalnie podstawowe kontrole; workflow CI jest przygotowany do wykonania na GitHubie.
 
 ## 3. E2 Dane i reguły bezpieczeństwa
 

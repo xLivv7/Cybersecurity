@@ -1,5 +1,7 @@
 """Account invariants exercised through model, manager and bulk ORM operations."""
 
+from datetime import timedelta
+
 import pytest
 from asgiref.sync import async_to_sync
 from django.contrib.auth import get_user_model
@@ -13,13 +15,6 @@ from apps.accounts.models import CredentialMode, Role, User
 pytestmark = pytest.mark.django_db
 
 
-@pytest.fixture
-def admin():
-    return User.objects.create_user(
-        "ADMIN", role=Role.ADMINISTRATOR, credential_mode=CredentialMode.INITIAL
-    )
-
-
 def test_custom_user_is_installed_without_default_auth_user_table():
     assert get_user_model() is User
     assert User._meta.db_table in connection.introspection.table_names()
@@ -29,8 +24,8 @@ def test_custom_user_is_installed_without_default_auth_user_table():
 @pytest.mark.parametrize(
     "role", [Role.MANAGER, Role.EDITOR, Role.EMPLOYEE, Role.READER]
 )
-def test_business_accounts_have_one_role_and_safe_initial_state(role):
-    user = User.objects.create_user("employee", role=role)
+def test_business_accounts_have_one_role_and_safe_initial_state(role, user_factory):
+    user = user_factory("employee", role=role)
     user.refresh_from_db()
     assert user.role == role
     assert user.credential_mode == CredentialMode.TEMPORARY
@@ -56,9 +51,9 @@ def test_login_is_unique_after_strip_and_unicode_casefold(original, duplicate):
     assert User.objects.count() == 1
 
 
-def test_normalizing_login_does_not_change_password_whitespace():
+def test_normalizing_login_does_not_change_password_whitespace(user_factory):
     password = "  a-long-educational-passphrase  "
-    user = User.objects.create_user(" Reader ", password=password)
+    user = user_factory(" Reader ", password=password)
     assert user.check_password(password)
     assert not user.check_password(password.strip())
     assert user.password.startswith("argon2$argon2id$")
@@ -132,8 +127,8 @@ def test_admin_protection_in_model_and_database(admin, field, value):
 
 
 @pytest.mark.parametrize("method", ["instance", "queryset", "base_manager", "mixed"])
-def test_admin_cannot_be_physically_deleted_through_orm(admin, method):
-    other = User.objects.create_user("reader")
+def test_admin_cannot_be_physically_deleted_through_orm(admin, method, user_factory):
+    other = user_factory()
     with pytest.raises(ProtectedError):
         if method == "instance":
             admin.login_key = "changed-in-memory"
@@ -148,11 +143,14 @@ def test_admin_cannot_be_physically_deleted_through_orm(admin, method):
     assert User.objects.filter(pk=other.pk).exists()
 
 
-def test_logically_deleted_login_stays_reserved():
-    user = User.objects.create_user("reader")
+def test_logically_deleted_login_stays_reserved(clock, user_factory):
+    user = user_factory("reader")
+    clock.advance(timedelta(days=1))
     user.is_active = False
     user.deleted_at = timezone.now()
     user.save()
+    user.refresh_from_db()
+    assert user.deleted_at - user.date_joined == timedelta(days=1)
     with pytest.raises(ValidationError):
         User.objects.create_user("READER")
     with pytest.raises(IntegrityError), transaction.atomic():

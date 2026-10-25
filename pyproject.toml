@@ -17,3 +17,28 @@ dev = [
 
 [tool.uv]
 package = false
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+addopts = ["--ds=config.settings.test", "--strict-config", "--strict-markers", "-ra"]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+pythonpath = ["."]
+faulthandler_timeout = 30
+
+[tool.ruff]
+target-version = "py313"
+line-length = 88
+extend-exclude = [".tools", ".cache", ".uv-cache", ".vscode"]
+force-exclude = true
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "RUF100"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["apps", "config"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
