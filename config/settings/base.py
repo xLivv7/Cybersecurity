@@ -59,7 +59,7 @@ DATABASES = {
     },
 }
 
-# AUTH_USER_MODEL will be set with the actual model in T003, before any migration.
+AUTH_USER_MODEL = "accounts.User"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.Argon2PasswordHasher"]

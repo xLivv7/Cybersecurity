@@ -1,7 +1,7 @@
 # Zadania implementacyjne modułu identyfikacji uwierzytelniania i autoryzacji
 
 Status: w realizacji  
-Wersja: 0.3
+Wersja: 0.4
 
 Data: 2026-10-25
 
@@ -45,13 +45,15 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 
 ### T003 Własny użytkownik i pierwsza migracja
 
-- [ ] Zaimplementować `User`, role i ograniczenia danych przed utworzeniem tabel uwierzytelniania.
+- [x] Zaimplementować `User`, role i ograniczenia danych przed utworzeniem tabel uwierzytelniania.
 
 **Zakres:** zbudować model na `AbstractUser` z polami opisanymi w planie, ustawić `AUTH_USER_MODEL`, dodać unikalny `login_key` wyliczany przez `strip().casefold()`, stany poświadczeń i wersję sesji. Zabezpieczyć relację loginu `ADMIN` do roli Administrator. Nie przyznawać tej roli innym kontom ani ustawiać `is_superuser=True`. W adresach aplikacji nie udostępniać Django Admin.
 
 **Zależności:** T002.  
 **Wymagania:** AUTH-04, ADMIN-03, ADMIN-07, TECH-02.  
 **Gotowe, gdy:** migracje działają na pustej bazie; testy potwierdzają unikalność loginu także dla różnych wielkości liter, niezmienność zarezerwowanej tożsamości i brak uprzywilejowania frameworkowego konta `ADMIN`.
+
+**Wykonano 2026-10-25:** dodano `accounts.User`, pięć ról, klucz loginu, tryby poświadczeń, wersję sesji i pola cyklu życia konta. Ustawiono `AUTH_USER_MODEL` przed zastosowaniem pierwszej migracji. Model, manager i ograniczenia bazy chronią konto `ADMIN` oraz odrzucają uprawnienia frameworka. Login pozostaje niezmienny także przy operacjach zbiorczych ORM. Migrację `accounts.0001_initial` zastosowano do pustej lokalnej bazy; powstała tabela `accounts_user`, bez `auth_user` i bez kont demonstracyjnych. Pełny zestaw 53 testów, kontrole Ruff, Django i zgodności migracji zakończyły się sukcesem. Szczegóły: [wyniki weryfikacji](../../docs/verification.md#t003-własny-użytkownik-i-pierwsza-migracja).
 
 ### T004 Podstawa testów i automatycznych kontroli
 

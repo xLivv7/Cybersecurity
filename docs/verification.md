@@ -88,4 +88,47 @@ Wynik: zakończone pomyślnie
 
 Testy konfiguracji działają w osobnych procesach, z jawnym kodowaniem UTF-8, również przy polskich znakach w ścieżce projektu. Kontrole Ruff używają `--isolated`, aby nie zależały od ustawień narzędzia spoza repozytorium. Wspólna konfiguracja narzędzi i CI powstanie w T004.
 
-T002 nie obejmuje jeszcze własnego modelu użytkownika ani działania kont i sesji w bazie. Nie wykonano `migrate` ani `makemigrations`. Pierwsze migracje zostaną przygotowane po ustawieniu `AUTH_USER_MODEL` w T003. Nie wykonywano publicznego wdrożenia, commita ani pushowania zmian.
+W ramach T002 nie implementowano własnego modelu użytkownika ani działania kont i sesji w bazie. Nie wykonano `migrate` ani `makemigrations`; pierwsze migracje przewidziano po ustawieniu `AUTH_USER_MODEL` w T003. W trakcie realizacji T002 nie wykonywano publicznego wdrożenia, commita ani pushowania zmian.
+
+## T003 Własny użytkownik i pierwsza migracja
+
+Data: 2026-10-25
+
+Wynik: zakończone pomyślnie
+
+Przed rozpoczęciem T003 zapisano ukończone T002 w commicie `cf010e6` (`feat: add Django skeleton and environment settings (T002)`). Lokalne ustawienia `.vscode` pozostawiono poza tym commitem.
+
+### Zakres wykonanych zmian
+
+- Dodano model `accounts.User` oparty na `AbstractUser` oraz ustawiono `AUTH_USER_MODEL = "accounts.User"`.
+- Każdy użytkownik ma jedną z pięciu ról. Domyślną rolą jest Czytelnik, trybem poświadczeń `TEMPORARY`, a początkową wersją sesji `1`.
+- Dodano datę logicznego usunięcia, datę ostatniej zmiany hasła i stany poświadczeń `INITIAL`, `TEMPORARY`, `PERMANENT`.
+- Login jest obcinany wyłącznie z otaczających spacji. Unikalny klucz `login_key` jest wyliczany przez `casefold()`. Nie opieramy unikalności znaków spoza ASCII na funkcji SQLite `LOWER`. Hasła nie przechodzą normalizacji loginu.
+- `ADMIN` jest kanonicznym zapisem zarezerwowanego loginu i jedynym kontem dopuszczającym rolę Administrator. Model i ograniczenia bazy odrzucają jego blokadę, degradację i logiczne usunięcie.
+- Model oraz queryset chronią przed zmianą loginu i usunięciem `ADMIN`, również przy aktualizacji lub usuwaniu zbiorczym. Manager bazowy korzysta z tych samych zabezpieczeń. Operacje wymagające ochrony nie są wykonywane surowym SQL.
+- Flagi `is_staff` i `is_superuser` są zabronione dla kont projektu, także ograniczeniem bazy. Manager odrzuca synchroniczne i asynchroniczne tworzenie superużytkownika Django.
+- Utworzono jedną początkową migrację `accounts.0001_initial`. Wersjonowany jest schemat, bez lokalnej bazy i danych kont.
+
+### Przeprowadzone kontrole
+
+| Kontrola | Wynik |
+|---|---|
+| Pełny pytest z `--ds=config.settings.test` | 53 testy zakończone sukcesem: 36 przypadków modelu i 17 przypadków konfiguracji |
+| Unikalność loginów | Odrzucone odpowiedniki różniące się wielkością liter, w tym `Straße`/`STRASSE` i `ŻANETA`/`żaneta` |
+| Hasła a normalizacja loginu | Otaczające spacje w haśle są zachowane; zapis i weryfikacja działają przez Argon2id |
+| Zmiana loginu | Odrzucona przez zapis modelu, odtworzoną instancję z istniejącym PK, queryset i aktualizację zbiorczą |
+| Ochrona administratora | Odmowa rozdzielenia loginu i roli, blokady, degradacji, logicznego usunięcia i nadania uprawnień frameworka |
+| Usunięcie administratora | Odmowa przez instancję, queryset, manager bazowy i usuwanie mieszanej listy kont |
+| Ograniczenia bazy | Bezpośrednie aktualizacje ORM naruszające rolę, stan, aktywność, wersję sesji lub flagi uprzywilejowania odrzucane przez bazę |
+| Logicznie usunięty użytkownik | Login pozostaje zarezerwowany; nie można pozostawić usuniętego konta aktywnym |
+| `ruff check --isolated --select E4,E7,E9,F,I` | Brak błędów |
+| `ruff format --isolated --check` | Wszystkie 26 plików Pythona poprawnie sformatowane |
+| `manage.py makemigrations --check --dry-run --noinput` | Brak brakujących zmian migracji |
+| `manage.py check` | Brak problemów |
+| `manage.py migrate --noinput` na pustej lokalnej bazie | Migracje Django i `accounts.0001_initial` zastosowane poprawnie |
+| `manage.py showmigrations accounts` | `0001_initial` oznaczona jako zastosowana |
+| Kontrola schematu i danych lokalnych | Tabela `accounts_user` istnieje, `auth_user` nie istnieje, liczba kont wynosi 0 |
+
+Testy modelu stosują migracje w izolowanej bazie w pamięci. Pełny zestaw uruchomiono poza ograniczeniami środowiska wykonawczego, ponieważ test wywołania asynchronicznego zatrzymywał się w ograniczonym środowisku Windows. Nie zmieniano konfiguracji bezpieczeństwa systemu ani nie korzystano z usług zewnętrznych.
+
+Lokalny plik SQLite był przed zastosowaniem migracji pusty. Nie usuwano ani nie nadpisywano istniejących danych użytkowników. Inicjalizacja konta `ADMIN` i danych demonstracyjnych pozostaje zadaniem T017 oraz T029; T003 przygotowuje ich model i ograniczenia. Nie wykonywano pushowania ani publicznego wdrożenia.

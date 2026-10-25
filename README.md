@@ -1,6 +1,6 @@
 # Cybersecurity Identity Access
 
-Edukacyjny projekt aplikacji webowej w Pythonie do zarządzania kontami, hasłami i uprawnieniami. Dostępny jest szkielet Django ze stroną startową oraz konfiguracjami środowisk. Logowanie, model użytkownika i pozostałe funkcje powstaną w kolejnych zadaniach.
+Edukacyjny projekt aplikacji webowej w Pythonie do zarządzania kontami, hasłami i uprawnieniami. Dostępny jest szkielet Django ze stroną startową, konfiguracjami środowisk i własnym modelem użytkownika. Logowanie, zarządzanie kontami i dokumenty powstaną w kolejnych zadaniach.
 
 ## Środowisko
 
@@ -39,16 +39,25 @@ with Path(".env").open("x", encoding="utf-8") as config_file:
 
 Nazwy ustawień są opisane także w `.env.example`. Lokalnie `.env` jest odczytywany bez nadpisywania zmiennych już ustawionych w procesie.
 
-Uruchom kontrolę konfiguracji i serwer:
+Uruchom kontrolę konfiguracji, zastosuj migracje i uruchom serwer:
 
 ```powershell
 uv run --locked python manage.py check
+uv run --locked python manage.py migrate --noinput
 uv run --locked python manage.py runserver
 ```
 
 Strona startowa jest dostępna pod adresem [http://127.0.0.1:8000/](http://127.0.0.1:8000/). Serwer zatrzymasz przez `Ctrl+C`.
 
-Przed ukończeniem T003 nie wykonuj `migrate` ani `makemigrations`. Najpierw powstanie własny model użytkownika. Serwer może na tym etapie informować o niezastosowanych migracjach frameworka; strona startowa działa bez tabel i nie wymaga ich zastosowania.
+Pierwsza migracja tworzy własną tabelę `accounts_user` zamiast domyślnej `auth_user`. Migracje można bezpiecznie uruchamiać ponownie; Django pomija już zastosowane operacje. Lokalna baza nie jest wersjonowana. Migracja nie tworzy jeszcze żadnych kont, również `ADMIN`; komendy inicjalizacji i odzyskiwania administratora powstaną w T017.
+
+## Model konta
+
+Każde konto ma jedną rolę: Administrator, Kierownik, Redaktor, Pracownik albo Czytelnik. Login jest niezmienny po utworzeniu, a unikalność jest sprawdzana na podstawie `strip().casefold()`, również dla znaków spoza ASCII.
+
+Rola Administrator jest zarezerwowana dla loginu `ADMIN`, zapisywanego zawsze w tej postaci. Konto to nie może zostać zablokowane, usunięte ani pozbawione roli. Nie używamy flag `is_staff` i `is_superuser`; próby ich nadania są odrzucane, a komenda `createsuperuser` nie służy do inicjalizacji kont projektu. Wbudowany panel Django Admin nie jest udostępniony.
+
+Model przechowuje także tryb poświadczeń, datę ostatniej zmiany hasła, znacznik usunięcia i wersję sesji. Te pola stanowią podstawę przyszłych serwisów bezpieczeństwa. Reguły logowania i unieważniania sesji powstaną w kolejnych zadaniach.
 
 ## Konfiguracje środowisk
 
@@ -69,12 +78,18 @@ Punkty wejścia WSGI i ASGI domyślnie używają konfiguracji produkcyjnej, chyb
 ## Weryfikacja szkieletu
 
 ```powershell
-uv run --locked pytest tests/test_settings.py --basetemp=.tools/t002-pytest -q
+uv run --locked python -m pytest --ds=config.settings.test tests --basetemp=.tools/pytest -q
 uv run --locked ruff check --isolated --select E4,E7,E9,F,I manage.py config apps tests
 uv run --locked ruff format --isolated --check manage.py config apps tests
 ```
 
-Testy sprawdzają izolację ustawień, obsługę sekretów i hostów, wymuszenie HTTPS, uruchomienie WSGI/ASGI, renderowanie strony bez zapytań do bazy oraz tryb transakcji SQLite. Nie stosują migracji. Kontrole Ruff są na tym etapie niezależne od ustawień narzędzia spoza projektu.
+Testy sprawdzają izolację ustawień, obsługę sekretów i hostów, wymuszenie HTTPS, uruchomienie WSGI/ASGI, renderowanie strony bez zapytań do bazy, tryb transakcji SQLite oraz ochronę modelu konta. Migracje modelu są stosowane w izolowanej bazie testowej w pamięci; testy nie korzystają z lokalnej `db.sqlite3`. Kontrole Ruff są na tym etapie niezależne od ustawień narzędzia spoza projektu.
+
+Sprawdzenie zgodności modeli z zapisanymi migracjami:
+
+```powershell
+uv run --locked python manage.py makemigrations --check --dry-run --noinput
+```
 
 ## Lokalne narzędzia na Windows jako opcja
 
