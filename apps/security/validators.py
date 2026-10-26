@@ -3,8 +3,10 @@
 from argon2 import Type, extract_parameters
 from argon2.exceptions import InvalidHashError
 from django.core.exceptions import ValidationError
+from django.views.decorators.debug import sensitive_variables
 
 
+@sensitive_variables()
 def validate_permanent_password(
     user, old_secret, new_secret, confirmation, *, source_hash=None, policy=None
 ):

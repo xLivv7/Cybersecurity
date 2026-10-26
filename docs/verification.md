@@ -281,3 +281,28 @@ Data: 2026-10-26. Wynik: zakończone pomyślnie.
 Walidacja i Argon2id odbywają się przed transakcją. W transakcji ponownie sprawdzany jest stan konta i poświadczenia, aktualizowane są hash, data, tryb i wersja sesji, archiwizowane poprzednie hasło stałe i usuwane wpisy poza pięcioma najnowszymi, a poświadczenia tymczasowe są unieważniane. Pierwsze hasło operatora ADMIN i hasła tymczasowe nie zajmują miejsc historii. Wynik zawiera tylko identyfikator i nową wersję; operacje na sesjach HTTP pozostają w E3.
 
 12 nowych przypadków obejmuje sukces dobrowolny, odrzucenia walidacji bez zapisu, rollback wymuszonego błędu historii, pierwszą zmianę ADMIN, wygaśnięcie, reset z ponownym podaniem sekretu i zakazem powrotu do hasła stałego, pierwszą zmianę konta z hasłem nieużywalnym, siedem kolejnych zmian z zachowaniem pięciu wpisów oraz nieaktualny/zablokowany kontekst. Pełny pytest: **146 testów przeszło**. Ruff, formatowanie, Django i kontrola migracji przeszły; nowych migracji brak. Pełne testy poza sandboxem Windows. Testy kolizji na osobnych połączeniach i obsługa blokady bazy są zakresem T011.
+
+## T011 Jednorazowe zużycie i kontrola współbieżności
+
+Data: 2026-10-26. Wynik: zakończone pomyślnie.
+
+`consume_temporary_credential` weryfikuje hash poza transakcją, następnie ponownie odczytuje konto i poświadczenie. W krótkiej transakcji wykonuje warunkowy zapis, sprawdzając wersję, tryb i aktywność konta, hash, zużycie, unieważnienie i czas `issued_at <= teraz < expires_at`. Tylko dokładnie jeden zmieniony rekord daje wynik `ConsumedCredential` dla przyszłego ograniczonego kontekstu. Nie tworzy jeszcze sesji HTTP.
+
+Zmiana hasła porównuje dane źródłowe sprzed walidacji z aktualnym stanem konta, poświadczenia, pięciu najnowszych wpisów historii i polityki. Ponownie sprawdza terminy; kosztowne hashowanie pozostaje poza transakcją. Zapis wersji konta jest warunkowy i sprawdza liczbę rekordów. Reset również sprawdza liczbę zmienionych kont. Błędy operacyjne bazy, w tym blokada SQLite, są tłumaczone na `SecurityConflict` dopiero po wyjściu z transakcji, bez częściowego zapisu i przyznania dostępu. Nie korzystamy z `select_for_update()`.
+
+Weryfikacja hasła stałego ponownie potwierdza stan po kosztownym porównaniu, aby odrzucić reset wykonany w trakcie. Jest nadal kontrolą odczytową; tworzenie i sprawdzanie sesji z wersją konta pozostaje w E3. Oznaczono również zmienne walidatora i osłony operacji bazodanowych jako wrażliwe w raportach błędów.
+
+Przegląd końcowy wykrył przypadek resetu ADMIN przed pierwszą zmianą hasła operatora. Archiwizujemy tylko hash hasła mającego datę ustawienia hasła stałego; hasło początkowe nie trafia do historii również po odzyskaniu konta.
+
+14 nowych przypadków testowych obejmuje:
+
+- Dwie jednoczesne próby zużycia na niezależnych połączeniach do tej samej tymczasowej plikowej bazy: dokładnie jeden sukces.
+- Reset pomiędzy kosztowną walidacją a zapisem starej operacji: starsze zużycie oraz starsza zmiana hasła przegrywają, a nowe poświadczenie i wersja pozostają aktualne.
+- Rzeczywistą blokadę zapisu SQLite na osobnym połączeniu przy wydaniu, zużyciu i zmianie hasła: konflikt bez częściowych zmian.
+- Błędny sekret, ponowne zużycie, granice czasu przed terminem i dokładnie w terminie oraz wygaśnięcie podczas weryfikacji hasha.
+- Zmiany polityki, historii lub poświadczenia podczas obliczania nowego hasha: odrzucenie zapisu.
+- Zerową liczbę zmienionych rekordów, reset podczas weryfikacji hasła stałego i odzyskanie początkowego ADMIN bez archiwizacji hasła operatora.
+
+Testy używają barier i zdarzeń z limitami oczekiwania, osobnych połączeń i plików `tmp_path`; nie używają lokalnej bazy ani oczekiwania na upływ godzin. Końcowy pełny zestaw po poprawce ADMIN: **160 testów przeszło w 64,80 s**. Dodatkowo 34 testy serwisów zmiany, walidatorów i współbieżności przeszły w osobnej kontroli po poprawce. Ruff, formatowanie (50 plików Pythona), kontrola Django, brakujących migracji i `git diff --check` przeszły. Brak nowych migracji T007–T011. Pełny zestaw i testy współbieżności uruchomiono na Windows poza sandboxem; wynik zdalnego CI i platformy Linux pozostaje do sprawdzenia po publikacji.
+
+E2 zamyka implementację reguł i serwisów. Formularze, pełne i ograniczone sesje oraz backend logowania są zakresem E3. README i lista zadań opisują aktualny stan. Nie wykonywano pushu ani publicznego wdrożenia; `.vscode` pozostało poza zmianami.

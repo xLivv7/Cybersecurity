@@ -1,7 +1,7 @@
 # Zadania implementacyjne modułu identyfikacji uwierzytelniania i autoryzacji
 
 Status: w realizacji  
-Wersja: 0.11
+Wersja: 0.12
 
 Data: 2026-10-26
 
@@ -149,7 +149,7 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 
 ### T011 Jednorazowe zużycie i kontrola współbieżności
 
-- [ ] Zaimplementować atomowe zużycie poświadczenia i ochronę przed nadpisaniem nowszego stanu.
+- [x] Zaimplementować atomowe zużycie poświadczenia i ochronę przed nadpisaniem nowszego stanu.
 
 **Zakres:** warunkowo oznaczać hasło jako zużyte tylko przy właściwej wersji konta i czasie przed terminem. Sprawdzać liczbę zmienionych rekordów. W zapisach opartych na wcześniejszej walidacji ponownie potwierdzać wersję konta i dane źródłowe. Obsługiwać konflikt lub blokadę bazy bez przyznawania dostępu i bez częściowego zapisu. Nie polegać na `select_for_update()` w SQLite.
 
@@ -158,7 +158,11 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 **Kryteria:** AC-13, AC-14, AC-16.  
 **Gotowe, gdy:** test na osobnych połączeniach plikowej bazy pozwala najwyżej jednej próbie zużyć hasło, a reset kolidujący ze zmianą lub użyciem poświadczenia nie zostaje nadpisany starszym stanem.
 
+**Wykonano 2026-10-26:** atomowe zużycie poświadczenia, kontrola liczby zapisów, ponowne sprawdzanie danych źródłowych i obsługa konfliktów/blokad przez `SecurityConflict`. Dodano 14 przypadków testowych, w tym rzeczywiste wyścigi na osobnych połączeniach plikowej bazy oraz test odzyskania ADMIN przed pierwszym hasłem stałym. Szczegóły i wyniki kontroli: [weryfikacja T011](../../docs/verification.md#t011-jednorazowe-zużycie-i-kontrola-współbieżności).
+
 **Zakończenie E2:** reguły i operacje bezpieczeństwa są dostępne jako wspólne serwisy i przechodzą testy przed podłączeniem ich do interfejsu.
+
+**E2 ukończono 2026-10-26:** T005–T011 są zaimplementowane i zweryfikowane. Końcowy pełny zestaw: 160 testów, poprawne kontrole Ruff, Django i zgodności migracji. Następny etap to E3, rozpoczynający się od T012.
 
 ## 4. E3 Logowanie i sesje
 
@@ -479,6 +483,6 @@ Poniższa mapa wskazuje zadania odpowiedzialne za implementację i weryfikację 
 | AC-30 | T025, T030, T031 |
 | AC-31 | T029, T033, T034, T035 |
 
-## 10. Pierwszy krok
+## 10. Kolejny krok
 
-Rozpoczynamy od T001, a następnie T002–T004. Pierwszą migrację wykonujemy dopiero po skonfigurowaniu własnego modelu użytkownika w T003. Kolejne etapy zaczynamy po spełnieniu warunku zakończenia poprzedniego etapu.
+E1 i E2 są ukończone. Kolejnym zadaniem jest T012 w etapie E3: formularz logowania i backend uwierzytelniania korzystający z reguł i serwisów E2. Kolejne etapy zaczynamy po spełnieniu warunku zakończenia poprzedniego etapu.

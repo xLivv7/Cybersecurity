@@ -65,7 +65,7 @@ Migracje modułu `security` tworzą jeden rekord `SecuritySettings` o identyfika
 
 Kod aplikacji pobiera bieżące wartości przez `apps.security.selectors.get_security_settings()`, wykonujący nowy odczyt z bazy przy każdym wywołaniu. Brak rekordu jest błędem inicjalizacji, bez zastępowania ustawień domyślnymi w pamięci. Zmiany zapisane przez model aktualizują `updated_at`, również przy użyciu `update_fields`.
 
-Moduł `apps.security.constants` definiuje stałe: minimalną długość hasła 14, minimalną odległość Levenshteina 4, historię 5 haseł stałych, długość hasła tymczasowego 16 i jego ważność 4 godziny. Konfiguracja walidatora długości Django korzysta ze wspólnej stałej. Pozostałe walidatory, serwisy i obsługa sesji zostaną podłączone w kolejnych zadaniach; panel zmiany ustawień powstanie w T021.
+Moduł `apps.security.constants` definiuje stałe: minimalną długość hasła 14, minimalną odległość Levenshteina 4, historię 5 haseł stałych, długość hasła tymczasowego 16 i jego ważność 4 godziny. Konfiguracja walidatora długości Django korzysta ze wspólnej stałej. Walidatory i serwisy bezpieczeństwa są dostępne po E2; obsługa sesji HTTP powstanie w E3, a panel zmiany ustawień w T021.
 
 Testy T005 można uruchomić osobno:
 
@@ -79,10 +79,26 @@ uv run --locked pytest tests/security/test_security_settings.py
 
 Oba modele przyjmują hash Argon2id z solą, bez automatycznego hashowania podanego tekstu. Pola odrzucają jawne hasła również w zwykłych zapisach zbiorczych ORM. Ograniczenia bazy wymagają dodatniej wersji, wygaśnięcia po wydaniu, zużycia przed wygaśnięciem i unieważnienia nie wcześniej niż wydanie. Powiązane konta są chronione przed fizycznym usunięciem; logiczne usunięcie zachowuje rekordy.
 
-Te modele przygotowują dane dla kolejnych zadań. Generowanie i reset poświadczeń powstaną w T009, ograniczanie historii do pięciu poprzednich haseł w T010, a atomowe zużycie i kontrola współbieżności w T011. Testy modeli:
+Modele są używane przez serwisy wydawania, resetu i zmiany haseł. Serwis zmiany utrzymuje pięć poprzednich haseł stałych, a atomowe zużycie poświadczenia pozwala najwyżej jednej próbie otrzymać wynik dla ograniczonego kontekstu. Testy modeli:
 
 ```powershell
 uv run --locked pytest tests/security/test_credentials.py
+```
+
+## Serwisy bezpieczeństwa po E2
+
+- `validate_permanent_password` w `apps.security.validators` sprawdza stary sekret, potwierdzenie, długość, popularne hasła, historię i aktywną regułę odległości Levenshteina. Nie zmienia danych i nie normalizuje haseł.
+- `issue_temporary_credential(user_id)` w `apps.security.services` zwraca jednorazowy sekret oraz identyfikator, wersję i termin poświadczenia. Zachowuje historię, unieważnia poprzednie poświadczenia i zwiększa wersję sesji. Wyniku nie należy zapisywać w sesji, loggerze ani komunikatach Django; interfejs ma pokazać sekret jednorazowo.
+- `consume_temporary_credential(credential_id, secret)` atomowo zużywa nadal ważne poświadczenie. Tylko pomyślny wynik z identyfikatorami, wersją i pierwotnym terminem może posłużyć w E3 do utworzenia ograniczonego kontekstu zmiany hasła. Utrata tego kontekstu wymaga nowego resetu.
+- `change_password` przyjmuje identyfikator użytkownika, stary sekret, nowe hasło i potwierdzenie oraz nazwane `reason` (`ChangeReason`), `expected_version` i dla resetu `credential_id`. Wersja i identyfikator poświadczenia muszą pochodzić z zaufanego kontekstu serwera. Powody to `VOLUNTARY`, `INITIAL`, `EXPIRED` i `RESET`. Serwis zapisuje wszystkie zmiany transakcyjnie i zwiększa wersję sesji; E3 podłączy zakończenie sesji HTTP i powrót do logowania.
+
+Kosztowne hashowanie odbywa się poza transakcją. Zapis ponownie sprawdza stan konta, poświadczenia, historii i polityki. `SecurityConflict` oznacza zmianę stanu lub błąd blokady bazy: brak przyznania dostępu i brak częściowego zapisu. Wymagane jest ponowienie od początku z aktualnym kontekstem. Nie używamy `select_for_update()` do ochrony SQLite. Pomocnicze funkcje `verify_*` są kontrolami odczytowymi i same nie przyznają sesji ani uprawnień.
+
+Testy współbieżności tworzą tymczasową plikową bazę przez `tmp_path` i używają osobnych połączeń w wątkach. Nie korzystają z lokalnej `db.sqlite3`, nie wymagają upływu godzin ani usług zewnętrznych:
+
+```powershell
+uv run --locked pytest tests/security
+uv run --locked pytest tests/security/test_concurrency.py
 ```
 
 ## Konfiguracje środowisk
