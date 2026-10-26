@@ -1,7 +1,7 @@
 # Zadania implementacyjne modułu identyfikacji uwierzytelniania i autoryzacji
 
 Status: w realizacji  
-Wersja: 0.10
+Wersja: 0.11
 
 Data: 2026-10-26
 
@@ -136,7 +136,7 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 
 ### T010 Transakcyjna zmiana hasła
 
-- [ ] Zaimplementować wspólny serwis ustawiania nowego hasła stałego.
+- [x] Zaimplementować wspólny serwis ustawiania nowego hasła stałego.
 
 **Zakres:** obsłużyć zmianę dobrowolną, pierwsze logowanie, hasło wygasłe i reset. W jednej transakcji aktualizować hash, historię, czas, tryb poświadczeń i wersję sesji oraz unieważniać poświadczenia tymczasowe. Przy resecie porównywać odległość z podanym hasłem tymczasowym; hasła stałe sprawdzać przez historię. Nie zapisywać starego sekretu w sesji.
 
@@ -144,6 +144,8 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 **Wymagania:** PASS-04, PASS-05, PASS-09, PASS-12, TEMP-03, TEMP-08, TEMP-09, EXP-03, SESS-05.  
 **Kryteria:** AC-04, AC-06, AC-07, AC-11, AC-15, AC-28.  
 **Gotowe, gdy:** sukces aktualizuje wszystkie dane spójnie; odrzucenie i wymuszony błąd zapisu nie pozostawiają częściowych zmian; historia mieści pięć poprzednich haseł stałych.
+
+**Wykonano 2026-10-26:** wspólny serwis `change_password` dla czterech kontekstów, transakcyjny zapis i historia pięciu poprzednich haseł. 12 nowych testów, pełny zestaw 146 testów oraz kontrole Ruff, Django i migracji przeszły. Szczegóły: [weryfikacja T010](../../docs/verification.md#t010-transakcyjna-zmiana-hasła).
 
 ### T011 Jednorazowe zużycie i kontrola współbieżności
 

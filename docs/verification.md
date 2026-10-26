@@ -271,3 +271,13 @@ Data: 2026-10-26. Wynik: zakończone pomyślnie.
 Pomocnicze kontrole czytają bieżący stan z bazy. Hasło stałe jest odrzucane w trybie tymczasowym; kontrola poświadczenia tymczasowego sprawdza wersję, aktywność konta, tryb, zużycie, unieważnienie i granicę czasu. To odczyt wstępny; atomowe zużycie i kontekst ograniczonego dostępu powstaną w T011/E3. Integracja WWW i jednokrotna prezentacja administratorowi pozostają w E4.
 
 5 nowych testów sprawdza format, losowość kolejnych wydań, rzeczywisty hash, brak sekretu w repr/logach, kolejne resety i zachowanie historii, odrzucenie poprzednich poświadczeń, dokładny termin wygaśnięcia, rollback przy błędzie zapisu oraz odrzucenie zużytych poświadczeń, konta zablokowanego i niezgodnej wersji. Pełny pytest: **134 testy przeszły**. Ruff, formatowanie, Django i kontrola migracji przeszły. Brak nowych migracji; pełne testy poza sandboxem Windows.
+
+## T010 Transakcyjna zmiana hasła
+
+Data: 2026-10-26. Wynik: zakończone pomyślnie.
+
+`change_password` obsługuje konteksty `VOLUNTARY`, `INITIAL`, `EXPIRED` i `RESET`. Wymaga aktualnej wersji konta z zaufanego kontekstu wywołującego. Reset wymaga identyfikatora zużytego, aktualnego poświadczenia z przyszłej ograniczonej sesji. Stary sekret jest ponownie weryfikowany; reguła odległości przy resecie odnosi się do hasła tymczasowego, a kontrola historii nadal do haseł stałych. Kontekst wygasłego hasła wymaga rzeczywistego wygaśnięcia według ustawień.
+
+Walidacja i Argon2id odbywają się przed transakcją. W transakcji ponownie sprawdzany jest stan konta i poświadczenia, aktualizowane są hash, data, tryb i wersja sesji, archiwizowane poprzednie hasło stałe i usuwane wpisy poza pięcioma najnowszymi, a poświadczenia tymczasowe są unieważniane. Pierwsze hasło operatora ADMIN i hasła tymczasowe nie zajmują miejsc historii. Wynik zawiera tylko identyfikator i nową wersję; operacje na sesjach HTTP pozostają w E3.
+
+12 nowych przypadków obejmuje sukces dobrowolny, odrzucenia walidacji bez zapisu, rollback wymuszonego błędu historii, pierwszą zmianę ADMIN, wygaśnięcie, reset z ponownym podaniem sekretu i zakazem powrotu do hasła stałego, pierwszą zmianę konta z hasłem nieużywalnym, siedem kolejnych zmian z zachowaniem pięciu wpisów oraz nieaktualny/zablokowany kontekst. Pełny pytest: **146 testów przeszło**. Ruff, formatowanie, Django i kontrola migracji przeszły; nowych migracji brak. Pełne testy poza sandboxem Windows. Testy kolizji na osobnych połączeniach i obsługa blokady bazy są zakresem T011.
