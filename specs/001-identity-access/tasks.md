@@ -1,7 +1,7 @@
 # Zadania implementacyjne modułu identyfikacji uwierzytelniania i autoryzacji
 
 Status: w realizacji  
-Wersja: 0.8
+Wersja: 0.9
 
 Data: 2026-10-26
 
@@ -110,7 +110,7 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 
 ### T008 Reguła odległości Levenshteina
 
-- [ ] Dodać czystą funkcję obliczającą odległość i włączyć ją do walidacji.
+- [x] Dodać czystą funkcję obliczającą odległość i włączyć ją do walidacji.
 
 **Zakres:** przyjąć koszt 1 dla wstawienia, usunięcia i zamiany. Sprawdzać próg 4 tylko przy włączonej regule. Uwzględnić spacje, polskie znaki, wielkość liter i puste ciągi w testach funkcji. Nie porównywać nowych haseł z samymi hashami.
 
@@ -118,6 +118,8 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 **Wymagania:** PASS-06, PASS-07, PASS-11, CONF-05.  
 **Kryteria:** AC-08, AC-09, AC-10.  
 **Gotowe, gdy:** odległość 3 odrzuca zmianę, odległość 4 przechodzi tę regułę, a wyłączenie kontroli nie wyłącza pozostałych walidatorów.
+
+**Wykonano 2026-10-26:** funkcja Levenshteina i integracja z aktualnymi ustawieniami; 13 nowych przypadków testowych, w tym granice 3/4, Unicode, spacje i przełączanie reguły. Pełny zestaw 129 testów oraz Ruff, Django i kontrola migracji przeszły. Szczegóły: [weryfikacja T008](../../docs/verification.md#t008-reguła-odległości-levenshteina).
 
 ### T009 Generowanie i resetowanie hasła tymczasowego
 

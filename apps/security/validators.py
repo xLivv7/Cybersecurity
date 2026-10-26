@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 
 
 def validate_permanent_password(
-    user, old_secret, new_secret, confirmation, *, source_hash=None
+    user, old_secret, new_secret, confirmation, *, source_hash=None, policy=None
 ):
     """Validate without writing or normalizing any password or user data.
 
@@ -16,7 +16,9 @@ def validate_permanent_password(
     from django.contrib.auth.hashers import check_password
     from django.contrib.auth.password_validation import validate_password
 
-    from .constants import PASSWORD_HISTORY_SIZE
+    from .constants import MIN_LEVENSHTEIN_DISTANCE, PASSWORD_HISTORY_SIZE
+    from .passwords import levenshtein_distance
+    from .selectors import get_security_settings
 
     if not all(
         isinstance(value, str) for value in (old_secret, new_secret, confirmation)
@@ -37,6 +39,16 @@ def validate_permanent_password(
         validate_password(new_secret, user=user)
     except ValidationError as error:
         errors["new_secret"] = error.error_list
+    policy = policy if policy is not None else get_security_settings()
+    if policy.levenshtein_enabled and (
+        levenshtein_distance(old_secret, new_secret) < MIN_LEVENSHTEIN_DISTANCE
+    ):
+        errors.setdefault("new_secret", []).append(
+            ValidationError(
+                "Nowe hasło musi różnić się od dotychczasowego o co najmniej 4 operacje.",
+                code="password_too_similar",
+            )
+        )
     history = user.password_history.values_list("password_hash", flat=True)[
         :PASSWORD_HISTORY_SIZE
     ]

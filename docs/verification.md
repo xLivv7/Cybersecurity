@@ -253,3 +253,11 @@ Data: 2026-10-26. Wynik: zakończone pomyślnie.
 Dodano `validate_permanent_password`: bez zapisu i normalizacji sprawdza stary sekret, potwierdzenie, walidatory Django (14 znaków i lista popularnych haseł), hash bieżącego hasła stałego i pięć najnowszych wpisów historii. Parametr `source_hash` pozwala w kolejnych serwisach sprawdzać hasło tymczasowe, zachowując kontrolę historii haseł stałych. Błędy mają pola i kody, bez wartości sekretów. Istniejąca konfiguracja Django używa rzeczywistego Argon2id.
 
 Dodano 8 przypadków testowych: granica 13/14, potwierdzenie i stary sekret, popularne hasło, brak wymagań klas znaków, historia pięciu haseł (z pominięciem szóstego), historia po przełączeniu w tryb tymczasowy, spacje/Unicode i brak skutków ubocznych. Pełny pytest: **116 testów przeszło**. Ruff, formatowanie, kontrola Django i brakujących migracji przeszły. Pełne testy uruchomiono poza sandboxem Windows ze względu na istniejący test asynchroniczny. Nowych migracji brak.
+
+## T008 Reguła odległości Levenshteina
+
+Data: 2026-10-26. Wynik: zakończone pomyślnie.
+
+Dodano czystą funkcję `levenshtein_distance` o jednostkowych kosztach operacji i pamięci proporcjonalnej do krótszego tekstu. Nie normalizuje Unicode, spacji ani wielkości liter. Wspólny walidator pobiera aktualne ustawienia (lub używa jawnego obrazu polityki przekazanego przez przyszły serwis), sprawdzając próg 4 tylko przy włączonej regule. Porównuje teksty sekretów, bez porównywania tekstu z hashem.
+
+13 nowych testów obejmuje puste ciągi, trzy operacje edycyjne, Unicode i reprezentacje złożone, wielkość liter, spacje, granicę 3/4 oraz wyłączenie i ponowne włączenie reguły. Przy wyłączonej regule nadal odrzucane są hasła krótkie, popularne, bieżące, niezgodne potwierdzenie i zły stary sekret. Testy T007 nadal potwierdzają kontrolę historii. Pełny pytest: **129 testów przeszło**. Ruff, formatowanie, Django i kontrola migracji przeszły; brak nowych migracji. Pełne testy wykonano poza sandboxem Windows.
