@@ -261,3 +261,13 @@ Data: 2026-10-26. Wynik: zakończone pomyślnie.
 Dodano czystą funkcję `levenshtein_distance` o jednostkowych kosztach operacji i pamięci proporcjonalnej do krótszego tekstu. Nie normalizuje Unicode, spacji ani wielkości liter. Wspólny walidator pobiera aktualne ustawienia (lub używa jawnego obrazu polityki przekazanego przez przyszły serwis), sprawdzając próg 4 tylko przy włączonej regule. Porównuje teksty sekretów, bez porównywania tekstu z hashem.
 
 13 nowych testów obejmuje puste ciągi, trzy operacje edycyjne, Unicode i reprezentacje złożone, wielkość liter, spacje, granicę 3/4 oraz wyłączenie i ponowne włączenie reguły. Przy wyłączonej regule nadal odrzucane są hasła krótkie, popularne, bieżące, niezgodne potwierdzenie i zły stary sekret. Testy T007 nadal potwierdzają kontrolę historii. Pełny pytest: **129 testów przeszło**. Ruff, formatowanie, Django i kontrola migracji przeszły; brak nowych migracji. Pełne testy wykonano poza sandboxem Windows.
+
+## T009 Generowanie i resetowanie hasła tymczasowego
+
+Data: 2026-10-26. Wynik: zakończone pomyślnie.
+
+`issue_temporary_credential(user_id)` używa `secrets.choice` z alfabetem ASCII liter i cyfr. Hash Argon2id powstaje poza transakcją. Krótka transakcja unieważnia wcześniejsze poświadczenia, przełącza konto w `TEMPORARY`, zwiększa `session_version` i zapisuje nowe poświadczenie ważne cztery godziny. Nie zmienia `User.password` ani historii. Wynik zawiera identyfikatory, wersję, termin i jednorazowy sekret; sekret jest wyłączony z repr, a funkcja oznacza wrażliwe zmienne dla raportowania błędów.
+
+Pomocnicze kontrole czytają bieżący stan z bazy. Hasło stałe jest odrzucane w trybie tymczasowym; kontrola poświadczenia tymczasowego sprawdza wersję, aktywność konta, tryb, zużycie, unieważnienie i granicę czasu. To odczyt wstępny; atomowe zużycie i kontekst ograniczonego dostępu powstaną w T011/E3. Integracja WWW i jednokrotna prezentacja administratorowi pozostają w E4.
+
+5 nowych testów sprawdza format, losowość kolejnych wydań, rzeczywisty hash, brak sekretu w repr/logach, kolejne resety i zachowanie historii, odrzucenie poprzednich poświadczeń, dokładny termin wygaśnięcia, rollback przy błędzie zapisu oraz odrzucenie zużytych poświadczeń, konta zablokowanego i niezgodnej wersji. Pełny pytest: **134 testy przeszły**. Ruff, formatowanie, Django i kontrola migracji przeszły. Brak nowych migracji; pełne testy poza sandboxem Windows.

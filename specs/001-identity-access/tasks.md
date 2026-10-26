@@ -1,7 +1,7 @@
 # Zadania implementacyjne modułu identyfikacji uwierzytelniania i autoryzacji
 
 Status: w realizacji  
-Wersja: 0.9
+Wersja: 0.10
 
 Data: 2026-10-26
 
@@ -123,7 +123,7 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 
 ### T009 Generowanie i resetowanie hasła tymczasowego
 
-- [ ] Zaimplementować serwis wydawania poświadczenia tymczasowego.
+- [x] Zaimplementować serwis wydawania poświadczenia tymczasowego.
 
 **Zakres:** generować 16 znaków alfanumerycznych przez `secrets`, zapisywać hash z ważnością 4 godzin, atomowo unieważniać starsze poświadczenia i zwiększać `session_version`. Reset przełącza konto w tryb `TEMPORARY`, zachowuje hash ostatniego hasła stałego i historię, ale blokuje logowanie tym hasłem. Jawny sekret zwracać tylko wywołującemu w celu jednorazowej prezentacji.
 
@@ -131,6 +131,8 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 **Wymagania:** TEMP-01, TEMP-02, TEMP-06, TEMP-07, TEMP-09, TECH-03, TECH-05.  
 **Kryteria:** AC-11, AC-12, AC-13, AC-16, AC-28.  
 **Gotowe, gdy:** testy potwierdzają format, terminy i zachowanie historii, a stare hasło i wcześniejsze poświadczenie nie zapewniają dostępu po resecie.
+
+**Wykonano 2026-10-26:** serwis `issue_temporary_credential`, kontrole aktualnych poświadczeń i testy resetu, granicy czasu oraz rollbacku. Jawny sekret istnieje tylko w wyniku operacji, bez zapisu i prezentacji w repr/logach. Pełny zestaw 134 testów oraz Ruff, Django i kontrola migracji przeszły. Szczegóły: [weryfikacja T009](../../docs/verification.md#t009-generowanie-i-resetowanie-hasła-tymczasowego).
 
 ### T010 Transakcyjna zmiana hasła
 
