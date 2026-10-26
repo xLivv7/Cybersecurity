@@ -1,7 +1,7 @@
 # Zadania implementacyjne modułu identyfikacji uwierzytelniania i autoryzacji
 
 Status: w realizacji  
-Wersja: 0.7
+Wersja: 0.8
 
 Data: 2026-10-26
 
@@ -97,7 +97,7 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 
 ### T007 Walidacja haseł i konfiguracja Argon2id
 
-- [ ] Przygotować wspólne sprawdzanie hasła stałego i historii.
+- [x] Przygotować wspólne sprawdzanie hasła stałego i historii.
 
 **Zakres:** skonfigurować hasher, minimalną długość, zgodność dwóch pól, poprawność starego sekretu, listę popularnych haseł oraz weryfikację kandydata względem hasha bieżącego i pięciu poprzednich haseł stałych. Hasła porównywać bez usuwania spacji i normalizacji; nie narzucać klas znaków.
 
@@ -105,6 +105,8 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 **Wymagania:** AUTH-04, PASS-01, PASS-02, PASS-03, PASS-04, PASS-05, PASS-08, PASS-09, PASS-10.  
 **Kryteria:** AC-04, AC-05, AC-06, AC-07, AC-11, AC-28.  
 **Gotowe, gdy:** testy sprawdzają granicę 13/14 znaków, niezgodne potwierdzenie, błędne stare hasło, popularne hasło i historię; rzeczywisty zapis używa Argon2id z solą.
+
+**Wykonano 2026-10-26:** wspólny walidator i 8 przypadków testowych; pełny zestaw 116 testów oraz Ruff, Django i kontrola migracji przeszły. Szczegóły: [weryfikacja T007](../../docs/verification.md#t007-walidacja-haseł-i-konfiguracja-argon2id).
 
 ### T008 Reguła odległości Levenshteina
 

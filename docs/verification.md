@@ -245,3 +245,11 @@ Przed rozpoczęciem T006 zapisano ukończone T005 w commicie `2a0c6b8` (`feat: a
 Test kolejnych generacji zapisuje stany modeli bezpośrednio, aby sprawdzić ich niezależność; nie zastępuje przyszłych testów serwisu resetu. Limit pięciu poprzednich haseł, generowanie czterogodzinnego poświadczenia, porównanie wersji z kontem i atomowe zużycie pozostają w T009–T011. Kontrole używały rzeczywistego Argon2id i izolowanych baz testowych; pełny zestaw uruchomiono poza sandboxem z uwagi na znane ograniczenie testu asynchronicznego Windows z E1.
 
 Zmiany T006 pozostawiono do przeglądu bez osobnego commita. Nie wykonywano pushu ani publicznego wdrożenia i nie zmieniano `.vscode`.
+
+## T007 Walidacja haseł i konfiguracja Argon2id
+
+Data: 2026-10-26. Wynik: zakończone pomyślnie.
+
+Dodano `validate_permanent_password`: bez zapisu i normalizacji sprawdza stary sekret, potwierdzenie, walidatory Django (14 znaków i lista popularnych haseł), hash bieżącego hasła stałego i pięć najnowszych wpisów historii. Parametr `source_hash` pozwala w kolejnych serwisach sprawdzać hasło tymczasowe, zachowując kontrolę historii haseł stałych. Błędy mają pola i kody, bez wartości sekretów. Istniejąca konfiguracja Django używa rzeczywistego Argon2id.
+
+Dodano 8 przypadków testowych: granica 13/14, potwierdzenie i stary sekret, popularne hasło, brak wymagań klas znaków, historia pięciu haseł (z pominięciem szóstego), historia po przełączeniu w tryb tymczasowy, spacje/Unicode i brak skutków ubocznych. Pełny pytest: **116 testów przeszło**. Ruff, formatowanie, kontrola Django i brakujących migracji przeszły. Pełne testy uruchomiono poza sandboxem Windows ze względu na istniejący test asynchroniczny. Nowych migracji brak.
