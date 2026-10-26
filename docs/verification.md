@@ -167,3 +167,40 @@ Wynik: zakończone pomyślnie lokalnie; workflow gotowy do pierwszego wykonania 
 Actionlint pobrano z oficjalnego wydania do ignorowanego katalogu `.tools`, a przed uruchomieniem sprawdzono SHA-256 archiwum względem opublikowanego pliku sum kontrolnych. Nie dodano go do zależności aplikacji.
 
 Pełne kontrole lokalne wykonano na Windows, poza ograniczeniami środowiska wykonawczego wymaganymi przez test asynchroniczny. Środowisko Linux i integracja z runnerami GitHub Actions nie były uruchamiane z tego komputera. Nie wykonywano commita ani pushu w ramach T004; zdalny wynik będzie można potwierdzić dopiero po wysłaniu workflow. Lokalnych ustawień `.vscode` nie zmieniano.
+
+## T005 Ustawienia bezpieczeństwa i stałe polityki
+
+Data: 2026-10-26
+
+Wynik: zakończone pomyślnie
+
+### Zakres wykonanych zmian
+
+- Dodano `apps.security.models.SecuritySettings`: stały klucz `1`, `levenshtein_enabled=True`, `password_max_age_days=0`, `idle_timeout_minutes=15` i `updated_at`. Walidacja działa przed zapisem, a częściowy zapis przez `update_fields` obejmuje datę modyfikacji.
+- Ograniczenie bazy dopuszcza tylko identyfikator `1`; razem z unikalnością klucza głównego pozwala przechowywać najwyżej jeden rekord. Migracja danych tworzy wymagany rekord początkowy.
+- Pola `PolicyIntegerField` odrzucają wartości ułamkowe przed konwersją Django, także przy zwykłych aktualizacjach querysetu. Walidatory określają nieujemną liczbę dni i dodatnią liczbę minut. Ograniczenia bazy chronią zakres oraz całkowitość także przy zapisie wyrażeń omijających konwersję pola.
+- `apps.security.constants` definiuje minimalną długość `14`, odległość `4`, historię `5`, długość hasła tymczasowego `16` i czas ważności `timedelta(hours=4)`. Istniejąca konfiguracja walidatora długości Django używa teraz wspólnej stałej, bez zmiany zachowania.
+- `get_security_settings()` pobiera rekord z bazy przy każdym wywołaniu; nie używa cache ani zastępczych wartości ukrywających brak migracji danych.
+- Dodano migrację schematu `security.0001_initial` i odwracalną migrację danych `security.0002_initial_settings`, używającą modelu historycznego i aliasu połączenia migracji.
+- README opisuje model, odczyt i stałe; lista zadań oznacza T005 jako ukończone. Zakres zachowania nie wymagał zmiany specyfikacji ani planu.
+
+### Przeprowadzone kontrole
+
+| Kontrola | Wynik |
+|---|---|
+| Testy `tests/security/test_security_settings.py` | 30 przypadków zakończonych sukcesem |
+| Pełny `python -m pytest -q` | 83 testy zakończone sukcesem |
+| `ruff check .` | Brak błędów |
+| `ruff format --check .` | Wszystkie 40 plików Pythona poprawnie sformatowane |
+| `manage.py check --settings=config.settings.test` | Brak problemów |
+| `manage.py makemigrations --check --dry-run --noinput --settings=config.settings.test` | Brak brakujących migracji |
+| Migracje w izolowanej bazie testowej oraz ponowne utworzenie schematu modułu przez `MigrationExecutor` | Jeden rekord z wymaganymi wartościami początkowymi |
+| Próby błędnych zakresów, ułamków, pustych i niepoprawnych danych | Odrzucone bez zmiany zapisanych ustawień |
+| Próba dodatkowego rekordu oraz aktualizacje omijające walidację modelu | Odrzucone przez ograniczenia bazy lub konwersję pola |
+| Odczyt po zmianie wszystkich trzech ustawień | Jedno nowe zapytanie zwraca aktualne wartości; data modyfikacji zgodna z kontrolowanym zegarem |
+| `manage.py migrate --noinput` na istniejącej lokalnej bazie | Obie nowe migracje zastosowane poprawnie |
+| Odczyt lokalnego rekordu po migracji | Liczba rekordów `1`, klucz `1`, reguła `True`, ważność `0`, bezczynność `15` |
+
+Polecenia wykonywano narzędziami z istniejącego `.venv`. Pierwsza próba pełnego zestawu w sandboxie zatrzymała się w istniejącym teście asynchronicznego managera kont przy tworzeniu lokalnego `socketpair` na Windows, tak jak podczas E1. Zatrzymano tę próbę i uruchomiono pełny zestaw poza sandboxem; wszystkie 83 testy przeszły. Testy używały izolowanej bazy, a lokalną bazę zmieniło wyłącznie jawne zastosowanie migracji i dodanie ustawień początkowych.
+
+Nie implementowano formularzy ustawień, middleware, historii haseł ani serwisów zmiany i resetu haseł; pozostają w kolejnych zadaniach. Nie wykonywano commita, pushu ani publicznego wdrożenia. Nie zmieniano lokalnych ustawień `.vscode`.

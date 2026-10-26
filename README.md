@@ -59,6 +59,20 @@ Rola Administrator jest zarezerwowana dla loginu `ADMIN`, zapisywanego zawsze w 
 
 Model przechowuje także tryb poświadczeń, datę ostatniej zmiany hasła, znacznik usunięcia i wersję sesji. Te pola stanowią podstawę przyszłych serwisów bezpieczeństwa. Reguły logowania i unieważniania sesji powstaną w kolejnych zadaniach.
 
+## Ustawienia bezpieczeństwa
+
+Migracje modułu `security` tworzą jeden rekord `SecuritySettings` o identyfikatorze `1`. Domyślnie reguła Levenshteina jest włączona, ważność hasła stałego wynosi `0` (bez okresowego wygasania), a limit bezczynności sesji to 15 minut. Dni muszą być całkowite i nieujemne, minuty całkowite i dodatnie.
+
+Kod aplikacji pobiera bieżące wartości przez `apps.security.selectors.get_security_settings()`, wykonujący nowy odczyt z bazy przy każdym wywołaniu. Brak rekordu jest błędem inicjalizacji, bez zastępowania ustawień domyślnymi w pamięci. Zmiany zapisane przez model aktualizują `updated_at`, również przy użyciu `update_fields`.
+
+Moduł `apps.security.constants` definiuje stałe: minimalną długość hasła 14, minimalną odległość Levenshteina 4, historię 5 haseł stałych, długość hasła tymczasowego 16 i jego ważność 4 godziny. Konfiguracja walidatora długości Django korzysta ze wspólnej stałej. Pozostałe walidatory, serwisy i obsługa sesji zostaną podłączone w kolejnych zadaniach; panel zmiany ustawień powstanie w T021.
+
+Testy T005 można uruchomić osobno:
+
+```powershell
+uv run --locked pytest tests/security/test_security_settings.py
+```
+
 ## Konfiguracje środowisk
 
 | Moduł ustawień | Zastosowanie |

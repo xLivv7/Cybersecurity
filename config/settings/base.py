@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+from apps.security.constants import MIN_PASSWORD_LENGTH
+
 BASE_DIR = Path(__file__).resolve().parents[2]
 
 DEBUG = False
@@ -66,7 +68,7 @@ PASSWORD_HASHERS = ["django.contrib.auth.hashers.Argon2PasswordHasher"]
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-        "OPTIONS": {"min_length": 14},
+        "OPTIONS": {"min_length": MIN_PASSWORD_LENGTH},
     },
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
 ]

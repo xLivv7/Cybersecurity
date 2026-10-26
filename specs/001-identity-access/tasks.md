@@ -1,9 +1,9 @@
 # Zadania implementacyjne modułu identyfikacji uwierzytelniania i autoryzacji
 
 Status: w realizacji  
-Wersja: 0.5
+Wersja: 0.6
 
-Data: 2026-10-25
+Data: 2026-10-26
 
 Podstawa: [spec.md](spec.md), wersja 0.2, oraz [plan.md](plan.md), wersja 0.1
 
@@ -73,13 +73,15 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 
 ### T005 Ustawienia bezpieczeństwa i stałe polityki
 
-- [ ] Dodać `SecuritySettings`, stałe oraz migrację danych początkowych.
+- [x] Dodać `SecuritySettings`, stałe oraz migrację danych początkowych.
 
 **Zakres:** domyślnie włączyć regułę Levenshteina, ustawić ważność hasła stałego na `0` i limit bezczynności na 15 minut. Zdefiniować stałe: długość hasła 14, odległość 4, historia 5, długość hasła tymczasowego 16 i ważność 4 godziny. Walidować całkowite, nieujemne dni i dodatnie minuty. Odczyt nie może korzystać z trwałego cache opóźniającego zastosowanie zmiany.
 
 **Zależności:** T004.  
 **Wymagania:** EXP-01, EXP-02, EXP-04, CONF-01, CONF-02, CONF-03, CONF-04, CONF-05.  
 **Gotowe, gdy:** migracja tworzy jeden rekord ustawień, wartości błędne są odrzucane, a zmiana ustawień jest widoczna przy kolejnym odczycie.
+
+**Wykonano 2026-10-26:** dodano model `SecuritySettings` ze stałym identyfikatorem `1`, ustawieniami domyślnymi i datą modyfikacji, nazwane stałe polityki oraz selektor odczytujący aktualne ustawienia bez cache. Migracje `security.0001_initial` i `security.0002_initial_settings` tworzą tabelę i pojedynczy rekord początkowy. Walidacja i ograniczenia bazy odrzucają niepoprawne zakresy oraz wartości ułamkowe, a ograniczenie identyfikatora uniemożliwia dodanie drugiego rekordu. Dodano 30 testów; pełny zestaw 83 testów i kontrole Ruff, Django oraz zgodności migracji przeszły. Migracje zastosowano również w lokalnej bazie. Szczegóły: [wyniki weryfikacji](../../docs/verification.md#t005-ustawienia-bezpieczeństwa-i-stałe-polityki).
 
 ### T006 Historia i poświadczenia tymczasowe
 
