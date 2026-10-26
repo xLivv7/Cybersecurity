@@ -73,6 +73,18 @@ Testy T005 można uruchomić osobno:
 uv run --locked pytest tests/security/test_security_settings.py
 ```
 
+## Historia haseł i poświadczenia tymczasowe
+
+`PasswordHistory` przechowuje użytkownika, hash wycofanego hasła stałego i czas jego zastąpienia (`replaced_at`). Wpisy są uporządkowane od najnowszego. `TemporaryCredential` ma osobny hash, `issued_at`, `expires_at`, opcjonalne `consumed_at` i `revoked_at` oraz `credential_version` odpowiadającą wersji konta w chwili wydania. Dla konta można zapisać tylko jedno poświadczenie danej wersji. Poświadczenie może być zużyte, a następnie unieważnione.
+
+Oba modele przyjmują hash Argon2id z solą, bez automatycznego hashowania podanego tekstu. Pola odrzucają jawne hasła również w zwykłych zapisach zbiorczych ORM. Ograniczenia bazy wymagają dodatniej wersji, wygaśnięcia po wydaniu, zużycia przed wygaśnięciem i unieważnienia nie wcześniej niż wydanie. Powiązane konta są chronione przed fizycznym usunięciem; logiczne usunięcie zachowuje rekordy.
+
+Te modele przygotowują dane dla kolejnych zadań. Generowanie i reset poświadczeń powstaną w T009, ograniczanie historii do pięciu poprzednich haseł w T010, a atomowe zużycie i kontrola współbieżności w T011. Testy modeli:
+
+```powershell
+uv run --locked pytest tests/security/test_credentials.py
+```
+
 ## Konfiguracje środowisk
 
 | Moduł ustawień | Zastosowanie |

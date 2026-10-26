@@ -3,6 +3,19 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 
+from .validators import validate_password_hash
+
+
+class PasswordHashField(models.CharField):
+    """Require an encoded Argon2id hash even for ordinary bulk ORM writes."""
+
+    default_validators = [validate_password_hash]
+
+    def get_prep_value(self, value):
+        value = super().get_prep_value(value)
+        validate_password_hash(value)
+        return value
+
 
 class PolicyIntegerField(models.IntegerField):
     def to_python(self, value):

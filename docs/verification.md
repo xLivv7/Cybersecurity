@@ -204,3 +204,44 @@ Wynik: zakończone pomyślnie
 Polecenia wykonywano narzędziami z istniejącego `.venv`. Pierwsza próba pełnego zestawu w sandboxie zatrzymała się w istniejącym teście asynchronicznego managera kont przy tworzeniu lokalnego `socketpair` na Windows, tak jak podczas E1. Zatrzymano tę próbę i uruchomiono pełny zestaw poza sandboxem; wszystkie 83 testy przeszły. Testy używały izolowanej bazy, a lokalną bazę zmieniło wyłącznie jawne zastosowanie migracji i dodanie ustawień początkowych.
 
 Nie implementowano formularzy ustawień, middleware, historii haseł ani serwisów zmiany i resetu haseł; pozostają w kolejnych zadaniach. Nie wykonywano commita, pushu ani publicznego wdrożenia. Nie zmieniano lokalnych ustawień `.vscode`.
+
+## T006 Historia i poświadczenia tymczasowe
+
+Data: 2026-10-26
+
+Wynik: zakończone pomyślnie
+
+Przed rozpoczęciem T006 zapisano ukończone T005 w commicie `2a0c6b8` (`feat: add security settings and policy constants (T005)`). Katalog `.vscode` pozostał poza commitem.
+
+### Zakres wykonanych zmian
+
+- Dodano `PasswordHistory`: relacja do użytkownika, `password_hash` i `replaced_at`. Kolejność to czas zastąpienia malejąco, a przy równych czasach klucz główny malejąco.
+- Dodano `TemporaryCredential`: relacja do użytkownika, osobny `password_hash`, `issued_at`, `expires_at`, opcjonalne `consumed_at` i `revoked_at` oraz `credential_version`. Hash ostatniego hasła stałego pozostaje w `User.password`; poświadczenia tymczasowe nie zajmują miejsc w historii.
+- `PasswordHashField` i jego walidator przyjmują kodowanie Argon2id z niepustą solą i hashem. Nie haszują automatycznie wejścia i nie umieszczają jego wartości w komunikacie błędu. Zwykłe zapisy przez model, `bulk_create` i `QuerySet.update` odrzucają jawne hasła. Dowolne wyrażenia SQL nie stanowią publicznego interfejsu zapisu sekretów.
+- Klucze obce używają `PROTECT`: logiczne usunięcie konta zachowuje dane, a fizyczne usunięcie konta posiadającego historię lub poświadczenia jest odrzucane.
+- Ograniczenia modelu i bazy wymagają dodatniej wersji, unikalnej pary użytkownik–wersja, wygaśnięcia po wydaniu, zużycia od momentu wydania do chwili przed wygaśnięciem oraz unieważnienia nie wcześniej niż wydanie. Zużyte poświadczenie może być później unieważnione.
+- Domyślne czasy wywołują bieżący `timezone.now()` przez funkcję pośrednią, dzięki czemu wspólna fixture zegara kontroluje je w testach.
+- Dodano migrację `security.0003_passwordhistory_temporarycredential`, z zależnością od modelu użytkownika. Zaktualizowano README i listę zadań. Zachowanie mieści się w specyfikacji i planie.
+
+### Przeprowadzone kontrole
+
+| Kontrola | Wynik |
+|---|---|
+| `python -m pytest tests/security/test_credentials.py -q` po poprawkach | 25 nowych przypadków zakończonych sukcesem w zestawie modułu |
+| `python -m pytest tests/security -q` | 55 testów zakończonych sukcesem |
+| Pełny `python -m pytest -q` poza sandboxem Windows | 108 testów zakończonych sukcesem |
+| `ruff check .` | Brak błędów |
+| `ruff format --check .` | Wszystkie 43 pliki Pythona poprawnie sformatowane |
+| `manage.py check --settings=config.settings.test` | Brak problemów |
+| `manage.py makemigrations --check --dry-run --noinput --settings=config.settings.test` | Brak brakujących migracji |
+| Migracje na pustej bazie testowej i ponowne utworzenie schematu `security` przez `MigrationExecutor` | Obie tabele istnieją i pozostają puste, ustawienia początkowe są zachowane |
+| Prawdziwe hashowanie Argon2id | Dwa hashe tego samego hasła różnią się dzięki soli; oba poprawnie weryfikują hasło |
+| Zapisy jawnych haseł, pustych wartości, znacznika hasła nieużywalnego i uszkodzonego kodowania | Odrzucone; zwykłe aktualizacje i zapisy zbiorcze również sprawdzone |
+| Niespójne terminy, wersja `0` i powtórzenie wersji dla konta | Odrzucone przez walidację oraz bazę przy pominięciu walidacji modelu |
+| Trzy kolejne generacje poświadczeń tymczasowych | Bieżący hash stały oraz identyfikator, hash i czas wpisu historii nie zmieniają się |
+| Logiczne i fizyczne usunięcie konta | Logiczne zachowuje dane obu modeli; fizyczne jest chronione |
+| `manage.py migrate --noinput` | Nowa migracja zastosowana poprawnie w lokalnej bazie |
+
+Test kolejnych generacji zapisuje stany modeli bezpośrednio, aby sprawdzić ich niezależność; nie zastępuje przyszłych testów serwisu resetu. Limit pięciu poprzednich haseł, generowanie czterogodzinnego poświadczenia, porównanie wersji z kontem i atomowe zużycie pozostają w T009–T011. Kontrole używały rzeczywistego Argon2id i izolowanych baz testowych; pełny zestaw uruchomiono poza sandboxem z uwagi na znane ograniczenie testu asynchronicznego Windows z E1.
+
+Zmiany T006 pozostawiono do przeglądu bez osobnego commita. Nie wykonywano pushu ani publicznego wdrożenia i nie zmieniano `.vscode`.

@@ -1,7 +1,7 @@
 # Zadania implementacyjne modułu identyfikacji uwierzytelniania i autoryzacji
 
 Status: w realizacji  
-Wersja: 0.6
+Wersja: 0.7
 
 Data: 2026-10-26
 
@@ -85,13 +85,15 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 
 ### T006 Historia i poświadczenia tymczasowe
 
-- [ ] Zaimplementować modele `PasswordHistory` i `TemporaryCredential`.
+- [x] Zaimplementować modele `PasswordHistory` i `TemporaryCredential`.
 
 **Zakres:** dodać pola, relacje i ograniczenia opisane w planie. Rozdzielić hash hasła stałego od poświadczenia tymczasowego. Uwzględnić terminy wydania, wygaśnięcia, zużycia i unieważnienia oraz wersję poświadczenia.
 
 **Zależności:** T005.  
 **Wymagania:** PASS-01, PASS-09, TEMP-01, TEMP-06, TEMP-07.  
 **Gotowe, gdy:** migracje działają od pustej bazy, poświadczenia zawierają wyłącznie hashe, a model pozwala zachować historię podczas wielokrotnych resetów.
+
+**Wykonano 2026-10-26:** dodano `PasswordHistory` z hashem wycofanego hasła stałego i czasem zastąpienia oraz `TemporaryCredential` z osobnym hashem, terminami wydania, wygaśnięcia, zużycia i unieważnienia oraz wersją poświadczenia. Pole hasha odrzuca jawne hasła i niepoprawne kodowanie Argon2id także przy zwykłych zapisach zbiorczych ORM. Relacje chronią rekordy przed kaskadowym usunięciem konta; ograniczenia zapewniają dodatnią wersję, unikalność wersji dla konta oraz spójne terminy. Migrację `security.0003_passwordhistory_temporarycredential` zweryfikowano w testach i zastosowano lokalnie. Dodano 25 testów; pełny zestaw 108 testów, Ruff, kontrola Django i zgodności migracji przeszły. Serwisy resetu i przycinania historii pozostają w T009–T011. Szczegóły: [wyniki weryfikacji](../../docs/verification.md#t006-historia-i-poświadczenia-tymczasowe).
 
 ### T007 Walidacja haseł i konfiguracja Argon2id
 
