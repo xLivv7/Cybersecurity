@@ -1,9 +1,9 @@
 # Zadania implementacyjne modułu identyfikacji uwierzytelniania i autoryzacji
 
 Status: w realizacji  
-Wersja: 0.12
+Wersja: 0.13
 
-Data: 2026-10-26
+Data: 2026-10-28
 
 Podstawa: [spec.md](spec.md), wersja 0.2, oraz [plan.md](plan.md), wersja 0.1
 
@@ -168,7 +168,7 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 
 ### T012 Logowanie i rozpoznanie trybu poświadczeń
 
-- [ ] Zaimplementować formularz logowania i backend uwierzytelniania.
+- [x] Zaimplementować formularz logowania i backend uwierzytelniania.
 
 **Zakres:** używać `login_key`, maskować hasło i zwracać dokładnie „Login lub hasło niepoprawne” dla wszystkich przyczyn odmowy opisanych w specyfikacji. Rozróżniać poświadczenia `INITIAL`, `TEMPORARY` i `PERMANENT`. Nie pozostawiać domyślnego backendu pozwalającego ominąć reguły projektu. Nieistniejący login także wywołuje kosztowną weryfikację zastępczą.
 
@@ -176,6 +176,8 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 **Wymagania:** AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05.  
 **Kryteria:** AC-01, AC-02.  
 **Gotowe, gdy:** testy rozróżniają sukces i porażkę bez ujawniania przyczyny odmowy, a konto zablokowane, usunięte lub w niewłaściwym trybie nie otrzymuje dostępu.
+
+**Wykonano 2026-10-28:** formularz `/login/`, klasyfikacja poświadczeń i własny backend bez domyślnej ścieżki awaryjnej. 11 nowych testów, pełna weryfikacja i szczegóły w [wynikach T012](../../docs/verification.md#t012-logowanie-i-rozpoznanie-trybu-poświadczeń). Podłączenie kontekstów sesji następuje w T013.
 
 ### T013 Pełna i ograniczona sesja
 

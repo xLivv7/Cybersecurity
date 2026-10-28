@@ -306,3 +306,11 @@ Przegląd końcowy wykrył przypadek resetu ADMIN przed pierwszą zmianą hasła
 Testy używają barier i zdarzeń z limitami oczekiwania, osobnych połączeń i plików `tmp_path`; nie używają lokalnej bazy ani oczekiwania na upływ godzin. Końcowy pełny zestaw po poprawce ADMIN: **160 testów przeszło w 64,80 s**. Dodatkowo 34 testy serwisów zmiany, walidatorów i współbieżności przeszły w osobnej kontroli po poprawce. Ruff, formatowanie (50 plików Pythona), kontrola Django, brakujących migracji i `git diff --check` przeszły. Brak nowych migracji T007–T011. Pełny zestaw i testy współbieżności uruchomiono na Windows poza sandboxem; wynik zdalnego CI i platformy Linux pozostaje do sprawdzenia po publikacji.
 
 E2 zamyka implementację reguł i serwisów. Formularze, pełne i ograniczone sesje oraz backend logowania są zakresem E3. README i lista zadań opisują aktualny stan. Nie wykonywano pushu ani publicznego wdrożenia; `.vscode` pozostało poza zmianami.
+
+## T012 Logowanie i rozpoznanie trybu poświadczeń
+
+Data: 2026-10-28. Wynik: zakończone pomyślnie.
+
+Dodano `/login/`, polski formularz z maskowaniem i bez normalizacji hasła, `authenticate_login` zwracający wyłącznie identyfikatory, wersję i powód ograniczenia oraz `CredentialBackend`. Jest jedynym backendem w konfiguracji i nie nadaje logowania Django poświadczeniom początkowym, tymczasowym lub wygasłym. Wyszukiwanie używa `strip().casefold()`, nieistniejący login powoduje zastępcze hashowanie Argon2id, a zmiana stanu w trakcie weryfikacji jest ponownie sprawdzana. Każda odmowa ma komunikat „Login lub hasło niepoprawne”. Konteksty sesji podłączane są w T013.
+
+11 nowych testów obejmuje loginy Unicode i spacje w hasłach, wszystkie tryby poświadczeń, blokadę/usunięcie, błędne dane, wygaśnięcie/zużycie/unieważnienie/reset, zastępczy hash i brak domyślnego backendu. Pełny pytest: **171 testów przeszło**. Ruff, formatowanie (54 pliki), kontrola Django i brakujących migracji przeszły. Pełny zestaw poza sandboxem Windows; nowych migracji brak.
