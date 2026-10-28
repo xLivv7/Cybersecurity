@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Pulpit — Cybersecurity Identity Access{% endblock %}
+{% block content %}
+  <p class="eyebrow">Cybersecurity Identity Access</p>
+  <h1>Pulpit</h1>
+  <p>Zalogowano jako <strong>{{ account.username }}</strong>.</p>
+  <p>Rola: {{ account.get_role_display }}</p>
+  <p><a href="/password/change/">Zmień własne hasło</a></p>
+{% endblock %}

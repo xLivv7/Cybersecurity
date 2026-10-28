@@ -194,7 +194,7 @@ from django.test.utils import CaptureQueriesContext
 from django.conf import settings
 assert 'django.middleware.csrf.CsrfViewMiddleware' in settings.MIDDLEWARE
 with CaptureQueriesContext(connection) as queries:
-    response = Client(enforce_csrf_checks=True).get('/')
+    response = Client(enforce_csrf_checks=True).get('/login/')
     assert response.status_code == 200
     assert 'lang="pl"' in response.text
     assert '/static/css/base.css' in response.text

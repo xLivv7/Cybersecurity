@@ -1,7 +1,7 @@
 # Zadania implementacyjne modułu identyfikacji uwierzytelniania i autoryzacji
 
 Status: w realizacji  
-Wersja: 0.13
+Wersja: 0.14
 
 Data: 2026-10-28
 
@@ -181,7 +181,7 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 
 ### T013 Pełna i ograniczona sesja
 
-- [ ] Podłączyć wynik logowania do właściwego kontekstu sesji.
+- [x] Podłączyć wynik logowania do właściwego kontekstu sesji.
 
 **Zakres:** pełne logowanie wykonywać mechanizmem Django. Dla pierwszego logowania, resetu i wygaśnięcia tworzyć ograniczony kontekst bez zwykłego `login()` i bez uwierzytelnionego użytkownika Django. Zapisywać tylko niezbędne identyfikatory, wersję, powód i czasy. Obracać klucz sesji i udostępniać ograniczonemu kontekstowi wyłącznie zmianę hasła oraz wylogowanie.
 
@@ -189,6 +189,8 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 **Wymagania:** AUTH-05, TEMP-03, TEMP-04, TEMP-05, EXP-03, SESS-06.  
 **Kryteria:** AC-02, AC-03, AC-14, AC-28.  
 **Gotowe, gdy:** testy bezpośrednich adresów nie pozwalają ograniczonej sesji wejść na pulpit ani do panelu kont; jedynie udane zużycie poświadczenia tymczasowego może nadać właściwy ograniczony kontekst.
+
+**Wykonano 2026-10-28:** sesje pełne i ograniczone, obrót klucza, chroniony pulpit oraz wejście do wymuszonej zmiany hasła. Ograniczony kontekst nie używa `login()` Django; reset wymaga atomowego zużycia poświadczenia. 5 nowych testów. Szczegóły: [weryfikacja T013](../../docs/verification.md#t013-pełna-i-ograniczona-sesja).
 
 ### T014 Formularze zmiany hasła
 

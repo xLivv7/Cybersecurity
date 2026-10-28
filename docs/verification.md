@@ -314,3 +314,11 @@ Data: 2026-10-28. Wynik: zakończone pomyślnie.
 Dodano `/login/`, polski formularz z maskowaniem i bez normalizacji hasła, `authenticate_login` zwracający wyłącznie identyfikatory, wersję i powód ograniczenia oraz `CredentialBackend`. Jest jedynym backendem w konfiguracji i nie nadaje logowania Django poświadczeniom początkowym, tymczasowym lub wygasłym. Wyszukiwanie używa `strip().casefold()`, nieistniejący login powoduje zastępcze hashowanie Argon2id, a zmiana stanu w trakcie weryfikacji jest ponownie sprawdzana. Każda odmowa ma komunikat „Login lub hasło niepoprawne”. Konteksty sesji podłączane są w T013.
 
 11 nowych testów obejmuje loginy Unicode i spacje w hasłach, wszystkie tryby poświadczeń, blokadę/usunięcie, błędne dane, wygaśnięcie/zużycie/unieważnienie/reset, zastępczy hash i brak domyślnego backendu. Pełny pytest: **171 testów przeszło**. Ruff, formatowanie (54 pliki), kontrola Django i brakujących migracji przeszły. Pełny zestaw poza sandboxem Windows; nowych migracji brak.
+
+## T013 Pełna i ograniczona sesja
+
+Data: 2026-10-28. Wynik: zakończone pomyślnie.
+
+Dodano sesyjny `security_context` z identyfikatorami, wersją, zakresem, powodem i czasami, bez sekretów. Pełny dostęp korzysta z `auth.login`; ograniczony z anonimowego użytkownika Django, po usunięciu poprzedniej sesji i obrocie klucza. Dla resetu wymagany jest pomyślny wynik atomowego zużycia. Każdy chroniony widok sprawdza aktualność konta i wersji, a ograniczony kontekst resetu również poświadczenie i pierwotny termin. Powstał chroniony pulpit `/` i wejście `/password/required/`; formularz zmiany będzie podłączony w T014.
+
+5 nowych przypadków sprawdza obrót klucza i usunięcie poprzednich danych, sesję pełną, ograniczenia INITIAL/RESET/EXPIRED, anonimowość Django, brak sekretu w sesji, jednorazowość oraz utratę dostępu po resecie. Publiczny test renderowania bez zapytań został przeniesiony z chronionego `/` na `/login/`. Pełny pytest: **176 testów przeszło**; Ruff, formatowanie (57 plików), Django i kontrola migracji przeszły. Nowych migracji brak; pełny zestaw poza sandboxem Windows. Timeout będzie dodany w T015, wylogowanie w T016.
