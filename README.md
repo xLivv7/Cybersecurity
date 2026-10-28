@@ -1,6 +1,6 @@
 # Cybersecurity Identity Access
 
-Edukacyjny projekt aplikacji webowej w Pythonie do zarządzania kontami, hasłami i uprawnieniami. Dostępny jest szkielet Django ze stroną startową, konfiguracjami środowisk i własnym modelem użytkownika. Logowanie, zarządzanie kontami i dokumenty powstaną w kolejnych zadaniach.
+Edukacyjny projekt aplikacji webowej w Pythonie do zarządzania kontami, hasłami i uprawnieniami. Po etapach E1–E3 działają logowanie, pełne i ograniczone sesje, zmiana hasła, wylogowanie i kontrola terminów. Panel kont, inicjalizacja ADMIN oraz dokumenty powstaną w kolejnych etapach.
 
 ## Środowisko
 
@@ -47,7 +47,7 @@ uv run --locked python manage.py migrate --noinput
 uv run --locked python manage.py runserver
 ```
 
-Strona startowa jest dostępna pod adresem [http://127.0.0.1:8000/](http://127.0.0.1:8000/). Serwer zatrzymasz przez `Ctrl+C`.
+Wejście pod [http://127.0.0.1:8000/](http://127.0.0.1:8000/) kieruje niezalogowaną osobę na [formularz logowania](http://127.0.0.1:8000/login/). Serwer zatrzymasz przez `Ctrl+C`.
 
 Pierwsza migracja tworzy własną tabelę `accounts_user` zamiast domyślnej `auth_user`. Migracje można bezpiecznie uruchamiać ponownie; Django pomija już zastosowane operacje. Lokalna baza nie jest wersjonowana. Migracja nie tworzy jeszcze żadnych kont, również `ADMIN`; komendy inicjalizacji i odzyskiwania administratora powstaną w T017.
 
@@ -57,7 +57,7 @@ Każde konto ma jedną rolę: Administrator, Kierownik, Redaktor, Pracownik albo
 
 Rola Administrator jest zarezerwowana dla loginu `ADMIN`, zapisywanego zawsze w tej postaci. Konto to nie może zostać zablokowane, usunięte ani pozbawione roli. Nie używamy flag `is_staff` i `is_superuser`; próby ich nadania są odrzucane, a komenda `createsuperuser` nie służy do inicjalizacji kont projektu. Wbudowany panel Django Admin nie jest udostępniony.
 
-Model przechowuje także tryb poświadczeń, datę ostatniej zmiany hasła, znacznik usunięcia i wersję sesji. Te pola stanowią podstawę przyszłych serwisów bezpieczeństwa. Reguły logowania i unieważniania sesji powstaną w kolejnych zadaniach.
+Model przechowuje także tryb poświadczeń, datę ostatniej zmiany hasła, znacznik usunięcia i wersję sesji. Serwisy bezpieczeństwa i obsługa sesji sprawdzają te pola, aby odebrać dostęp po resecie, zmianie hasła lub unieważnieniu wersji konta.
 
 ## Ustawienia bezpieczeństwa
 
@@ -65,7 +65,7 @@ Migracje modułu `security` tworzą jeden rekord `SecuritySettings` o identyfika
 
 Kod aplikacji pobiera bieżące wartości przez `apps.security.selectors.get_security_settings()`, wykonujący nowy odczyt z bazy przy każdym wywołaniu. Brak rekordu jest błędem inicjalizacji, bez zastępowania ustawień domyślnymi w pamięci. Zmiany zapisane przez model aktualizują `updated_at`, również przy użyciu `update_fields`.
 
-Moduł `apps.security.constants` definiuje stałe: minimalną długość hasła 14, minimalną odległość Levenshteina 4, historię 5 haseł stałych, długość hasła tymczasowego 16 i jego ważność 4 godziny. Konfiguracja walidatora długości Django korzysta ze wspólnej stałej. Walidatory i serwisy bezpieczeństwa są dostępne po E2; obsługa sesji HTTP powstanie w E3, a panel zmiany ustawień w T021.
+Moduł `apps.security.constants` definiuje stałe: minimalną długość hasła 14, minimalną odległość Levenshteina 4, historię 5 haseł stałych, długość hasła tymczasowego 16 i jego ważność 4 godziny. Konfiguracja walidatora długości Django korzysta ze wspólnej stałej. Działają walidatory, serwisy bezpieczeństwa i sesje HTTP; panel zmiany ustawień powstanie w T021.
 
 Testy T005 można uruchomić osobno:
 
@@ -89,8 +89,8 @@ uv run --locked pytest tests/security/test_credentials.py
 
 - `validate_permanent_password` w `apps.security.validators` sprawdza stary sekret, potwierdzenie, długość, popularne hasła, historię i aktywną regułę odległości Levenshteina. Nie zmienia danych i nie normalizuje haseł.
 - `issue_temporary_credential(user_id)` w `apps.security.services` zwraca jednorazowy sekret oraz identyfikator, wersję i termin poświadczenia. Zachowuje historię, unieważnia poprzednie poświadczenia i zwiększa wersję sesji. Wyniku nie należy zapisywać w sesji, loggerze ani komunikatach Django; interfejs ma pokazać sekret jednorazowo.
-- `consume_temporary_credential(credential_id, secret)` atomowo zużywa nadal ważne poświadczenie. Tylko pomyślny wynik z identyfikatorami, wersją i pierwotnym terminem może posłużyć w E3 do utworzenia ograniczonego kontekstu zmiany hasła. Utrata tego kontekstu wymaga nowego resetu.
-- `change_password` przyjmuje identyfikator użytkownika, stary sekret, nowe hasło i potwierdzenie oraz nazwane `reason` (`ChangeReason`), `expected_version` i dla resetu `credential_id`. Wersja i identyfikator poświadczenia muszą pochodzić z zaufanego kontekstu serwera. Powody to `VOLUNTARY`, `INITIAL`, `EXPIRED` i `RESET`. Serwis zapisuje wszystkie zmiany transakcyjnie i zwiększa wersję sesji; E3 podłączy zakończenie sesji HTTP i powrót do logowania.
+- `consume_temporary_credential(credential_id, secret)` atomowo zużywa nadal ważne poświadczenie. Tylko pomyślny wynik z identyfikatorami, wersją i pierwotnym terminem pozwala przy logowaniu utworzyć ograniczony kontekst zmiany hasła. Utrata tego kontekstu wymaga nowego resetu.
+- `change_password` przyjmuje identyfikator użytkownika, stary sekret, nowe hasło i potwierdzenie oraz nazwane `reason` (`ChangeReason`), `expected_version` i dla resetu `credential_id`. Wersja i identyfikator poświadczenia muszą pochodzić z zaufanego kontekstu serwera. Powody to `VOLUNTARY`, `INITIAL`, `EXPIRED` i `RESET`. Serwis zapisuje wszystkie zmiany transakcyjnie i zwiększa wersję sesji; widok zamyka sesję HTTP i kieruje do ponownego logowania.
 
 Kosztowne hashowanie odbywa się poza transakcją. Zapis ponownie sprawdza stan konta, poświadczenia, historii i polityki. `SecurityConflict` oznacza zmianę stanu lub błąd blokady bazy: brak przyznania dostępu i brak częściowego zapisu. Wymagane jest ponowienie od początku z aktualnym kontekstem. Nie używamy `select_for_update()` do ochrony SQLite. Pomocnicze funkcje `verify_*` są kontrolami odczytowymi i same nie przyznają sesji ani uprawnień.
 
@@ -99,6 +99,28 @@ Testy współbieżności tworzą tymczasową plikową bazę przez `tmp_path` i u
 ```powershell
 uv run --locked pytest tests/security
 uv run --locked pytest tests/security/test_concurrency.py
+```
+
+## Logowanie i sesje po E3
+
+| Adres | Metody | Dostęp |
+|---|---|---|
+| `/login/` | GET, POST | Formularz logowania |
+| `/` | GET | Pulpit pełnej sesji |
+| `/password/change/` | GET, POST | Zwykła zmiana własnego hasła |
+| `/password/required/` | GET, POST | Wymuszona zmiana w ograniczonym kontekście |
+| `/logout/` | POST | Wylogowanie pełnej lub ograniczonej sesji z CSRF |
+
+Pierwsze hasło ADMIN, ważne hasło tymczasowe i wygasłe hasło stałe dają wyłącznie ograniczony kontekst. Nie jest on uwierzytelnionym użytkownikiem Django i nie otwiera pulpitu. Przy resecie formularz ponownie wymaga hasła tymczasowego. Po poprawnej zmianie trzeba zalogować się nowym hasłem; dotychczasowe sesje tracą dostęp.
+
+`SecurityContextMiddleware` działa po obsłudze sesji i uwierzytelniania. Przy żądaniu odczytuje bieżące konto, wersję oraz ustawienia i sprawdza limit przed odnowieniem aktywności. Sesja na granicy limitu jest już nieważna. Zmiana ważności hasła może od razu przełączyć pełny dostęp na ograniczony. Hasło tymczasowe i jego ograniczony kontekst zachowują oryginalny termin czterech godzin, niezależnie od aktywności. Statyczne pliki nie przedłużają sesji; przyszłe widoki automatycznego odpytywania muszą być oznaczone `apps.security.middleware.passive_view`.
+
+Chronione odpowiedzi i widoki uwierzytelniania mają `Cache-Control: no-store`. Wylogowanie usuwa sesję z bazy; GET jej nie kończy, a stare ciasteczko nie przywraca dostępu. Sesyjne ciasteczka mają `HttpOnly` i `SameSite=Lax`, a w HTTPS także `Secure`. Token CSRF jest obracany również przy ograniczonym logowaniu, przełączeniu do wymuszonej zmiany i wylogowaniu. Filtr raportowania ukrywa sekrety POST oraz ciasteczka również w lokalnym trybie debugowania.
+
+Migracje nie tworzą kont. Lokalna inicjalizacja `ADMIN` jest następnym zadaniem T017; nie ma publicznej rejestracji ani wbudowanego panelu Django Admin. Kompletne ścieżki E3 są obecnie weryfikowane na kontach tworzonych w izolowanych testach:
+
+```powershell
+uv run --locked pytest tests/accounts/test_login.py tests/accounts/test_sessions.py tests/security/test_password_views.py tests/security/test_session_limits.py tests/security/test_session_protection.py
 ```
 
 ## Konfiguracje środowisk

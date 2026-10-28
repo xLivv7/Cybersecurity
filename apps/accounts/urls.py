@@ -1,8 +1,11 @@
-"""Account routes will be added with authentication and account management."""
+"""Authentication routes; account management is added in E4."""
 
 from django.urls import path
 
-from .views import login_view
+from .views import login_view, logout_view
 
 app_name = "accounts"
-urlpatterns = [path("login/", login_view, name="login")]
+urlpatterns = [
+    path("login/", login_view, name="login"),
+    path("logout/", logout_view, name="logout"),
+]

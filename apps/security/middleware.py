@@ -4,8 +4,10 @@ from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.contrib import auth
+from django.middleware.csrf import rotate_token
 from django.shortcuts import redirect
 from django.utils import timezone
+from django.utils.cache import add_never_cache_headers
 from django.utils.deprecation import MiddlewareMixin
 
 from apps.accounts.backends import password_expired
@@ -23,6 +25,10 @@ def passive_view(view):
 
 class SecurityContextMiddleware(MiddlewareMixin):
     def process_view(self, request, view_func, view_args, view_kwargs):
+        request.security_private_response = bool(
+            getattr(view_func, "requires_security_context", False)
+            or request.session.get(CONTEXT_KEY)
+        )
         access = get_access(request)
         if access is None:
             if request.user.is_authenticated:
@@ -46,6 +52,7 @@ class SecurityContextMiddleware(MiddlewareMixin):
             data = {**data, "scope": "limited", "reason": ChangeReason.EXPIRED}
             auth.logout(request)
             request.session.cycle_key()
+            rotate_token(request)
             request.session[CONTEXT_KEY] = data
         # Limited contexts cannot reach future application views accidentally.
         if data["scope"] == "limited" and request.resolver_match.view_name not in (
@@ -60,3 +67,13 @@ class SecurityContextMiddleware(MiddlewareMixin):
         ):
             request.session[CONTEXT_KEY] = {**data, "last_activity": now.isoformat()}
         return None
+
+    def process_response(self, request, response):
+        if request.path in (
+            "/login/",
+            "/logout/",
+            "/password/change/",
+            "/password/required/",
+        ) or getattr(request, "security_private_response", False):
+            add_never_cache_headers(response)
+        return response

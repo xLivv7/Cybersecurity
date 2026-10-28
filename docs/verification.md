@@ -342,3 +342,17 @@ Dodano `SecurityContextMiddleware` po obsłudze sesji i uwierzytelniania. Dla ka
 Pełny pytest: **205 testów przeszło**. Ruff, formatowanie (61 plików), Django i kontrola brakujących migracji przeszły. Nowych migracji brak; pełny zestaw poza sandboxem Windows.
 
 Przed T015 zastany wskaźnik `.git/refs/heads/main` zawierał znaki zerowe. Potwierdzono zgodność indeksu i plików z istniejącym commitem T014 `de0d7f1` oraz wpisem refloga. Zachowano kopię uszkodzonego wskaźnika w ignorowanym `.tools/git-recovery` i przywrócono go do pełnego identyfikatora T014. Kontrola Git nie wykazała uszkodzonych obiektów ani brakujących commitów; plików aplikacji i indeksu nie zmieniano przy naprawie.
+
+## T016 Wylogowanie i zabezpieczenia sesji
+
+Data: 2026-10-28. Wynik: zakończone pomyślnie.
+
+Dodano `/logout/` wyłącznie przez POST, z aktywną ochroną CSRF dla obu kontekstów. Sesja jest usuwana z bazy i przeglądarka wraca na logowanie. Pulpit i oba formularze zmiany mają przycisk wylogowania. GET zwraca 405, a żądanie bez CSRF 403, bez zakończenia aktywnej sesji.
+
+Chronione odpowiedzi, przekierowania oraz widoki logowania, zmiany i wylogowania (również błędy CSRF) dostają nagłówki `no-store` i `private`. Istniejące `HttpOnly` i `SameSite=Lax` są utrzymane; w HTTPS działa `Secure`. Token CSRF jest obracany również w ograniczonym logowaniu, przełączeniu sesji do EXPIRED i wylogowaniu. Dodano filtr raportowania aktywny także przy lokalnym DEBUG, który wykorzystuje oznaczenia wrażliwych zmiennych i usuwa sekrety POST oraz ciasteczka z raportów błędów.
+
+Sprawdzono również zmianę polityki po utworzeniu kontekstu EXPIRED: wyłączenie okresowego wygasania nie przyznaje automatycznie pełnego dostępu, ale pozwala dokończyć poprawną zmianę hasła wspólnym serwisem jako dobrowolną zmianę. Nadal wymagany jest stary sekret i wszystkie aktywne walidacje.
+
+9 nowych przypadków obejmuje POST/CSRF/GET dla obu kontekstów, obrót tokenów CSRF, brak przywrócenia przez stary klucz, odrzucenie zmiany hasła bez CSRF, nagłówki, ciasteczka HTTPS, redakcję prawdziwego tekstowego raportu błędu w DEBUG, brak sekretów i klucza sesji w logach/sesjach/przekierowaniach oraz zmianę polityki ograniczonego kontekstu. README i lista zadań opisują aktualny E3 i wskazują T017 jako następny krok.
+
+Końcowy pełny pytest E3: **214 testów przeszło w 218,90 s**. Ruff, formatowanie (63 pliki Pythona), kontrola Django, brakujących migracji i `git diff --check` przeszły. Testy używały izolowanych baz i rzeczywistego Argon2id; pełny zestaw uruchomiono na Windows poza sandboxem. W E3 nie powstały nowe migracje i nie tworzono kont w lokalnej bazie. Wynik Linux i zdalnego CI pozostaje do potwierdzenia po publikacji. Nie wykonywano pushu, publicznego wdrożenia ani zmian `.vscode`.

@@ -1,7 +1,7 @@
 # Zadania implementacyjne modułu identyfikacji uwierzytelniania i autoryzacji
 
 Status: w realizacji  
-Wersja: 0.16
+Wersja: 0.17
 
 Data: 2026-10-28
 
@@ -220,7 +220,7 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 
 ### T016 Wylogowanie i zabezpieczenia sesji
 
-- [ ] Dodać wylogowanie, nagłówki oraz ochronę wrażliwych danych.
+- [x] Dodać wylogowanie, nagłówki oraz ochronę wrażliwych danych.
 
 **Zakres:** wylogowanie przez POST z CSRF działa dla obu kontekstów i usuwa sesję po stronie serwera. Ustawić `HttpOnly`, `SameSite=Lax`, `Secure` w konfiguracji HTTPS oraz `no-store` na widokach chronionych i prezentujących sekret. Oznaczyć dane wrażliwe w raportowaniu błędów; nie zapisywać ich w loggerze, komunikatach sesyjnych ani adresach URL.
 
@@ -229,7 +229,11 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 **Kryteria:** AC-23, AC-28, AC-29.  
 **Gotowe, gdy:** stare ciasteczko nie przywraca wylogowanej sesji, GET nie wylogowuje, brak CSRF blokuje operację, a testy nagłówków i logów nie wykazują zapisu sekretów.
 
+**Wykonano 2026-10-28:** wylogowanie POST z CSRF i usunięciem sesji po stronie serwera, `no-store`, bezpieczne ciasteczka, obrót CSRF i filtr raportów błędów. 9 nowych testów; szczegóły: [weryfikacja T016](../../docs/verification.md#t016-wylogowanie-i-zabezpieczenia-sesji).
+
 **Zakończenie E3:** da się przejść pierwsze logowanie, zmianę, reset, wygaśnięcie i wylogowanie; żaden ograniczony kontekst nie zapewnia pełnego dostępu.
+
+**E3 ukończono 2026-10-28:** T012–T016 zaimplementowano i zweryfikowano; końcowy pełny zestaw 214 testów oraz kontrole Ruff, Django i migracji przeszły. Następny etap to E4, rozpoczynający się od T017 — inicjalizacji i odzyskiwania ADMIN.
 
 ## 5. E4 Konta i panel bezpieczeństwa
 
@@ -493,4 +497,4 @@ Poniższa mapa wskazuje zadania odpowiedzialne za implementację i weryfikację 
 
 ## 10. Kolejny krok
 
-E1 i E2 są ukończone. Kolejnym zadaniem jest T012 w etapie E3: formularz logowania i backend uwierzytelniania korzystający z reguł i serwisów E2. Kolejne etapy zaczynamy po spełnieniu warunku zakończenia poprzedniego etapu.
+E1–E3 są ukończone. Kolejnym zadaniem jest T017 w etapie E4: lokalne komendy inicjalizacji i odzyskiwania ADMIN. Kolejne etapy zaczynamy po spełnieniu warunku zakończenia poprzedniego etapu.

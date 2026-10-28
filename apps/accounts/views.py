@@ -1,9 +1,11 @@
-"""Authentication endpoints; session dispatch is added in T013."""
+"""Authentication, protected dashboard and POST-only logout endpoints."""
 
+from django.contrib import auth
 from django.core.exceptions import ValidationError
+from django.middleware.csrf import rotate_token
 from django.shortcuts import redirect, render
 from django.views.decorators.debug import sensitive_post_parameters, sensitive_variables
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.security.sessions import access_required, get_access, start_session
 
@@ -37,3 +39,10 @@ def login_view(request):
 @require_http_methods(["GET"])
 def dashboard(request):
     return render(request, "accounts/dashboard.html", {"account": request.access_user})
+
+
+@require_POST
+def logout_view(request):
+    auth.logout(request)
+    rotate_token(request)
+    return redirect("/login/?logged_out=1")

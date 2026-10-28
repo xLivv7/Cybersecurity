@@ -1,8 +1,12 @@
 """Password fields preserve exact input and delegate all rules to the service."""
 
 from django import forms
+from django.utils import timezone
 from django.views.decorators.debug import sensitive_variables
 
+from apps.accounts.backends import password_expired
+
+from .selectors import get_security_settings
 from .services import ChangeReason, change_password
 
 
@@ -31,12 +35,18 @@ class PasswordChangeForm(forms.Form):
 
     @sensitive_variables()
     def save(self):
+        reason = self.context["reason"] or ChangeReason.VOLUNTARY
+        if reason == ChangeReason.EXPIRED and not password_expired(
+            self.user, get_security_settings(), timezone.now()
+        ):
+            # A policy change may end expiry, while this session stays limited.
+            reason = ChangeReason.VOLUNTARY
         return change_password(
             self.user.pk,
             self.cleaned_data["old_secret"],
             self.cleaned_data["new_secret"],
             self.cleaned_data["confirmation"],
-            reason=self.context["reason"] or ChangeReason.VOLUNTARY,
+            reason=reason,
             expected_version=self.context["version"],
             credential_id=self.context["credential_id"],
         )

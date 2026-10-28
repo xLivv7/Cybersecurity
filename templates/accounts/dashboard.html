@@ -6,4 +6,5 @@
   <p>Zalogowano jako <strong>{{ account.username }}</strong>.</p>
   <p>Rola: {{ account.get_role_display }}</p>
   <p><a href="/password/change/">Zmień własne hasło</a></p>
+  {% include "accounts/logout_form.html" %}
 {% endblock %}

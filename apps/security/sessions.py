@@ -6,6 +6,7 @@ from functools import wraps
 from django.contrib import auth
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.middleware.csrf import rotate_token
 from django.shortcuts import redirect
 from django.utils import timezone
 from django.views.decorators.debug import sensitive_variables
@@ -51,6 +52,8 @@ def start_session(request, result, password):
     request.session.cycle_key()
     if reason is None:
         auth.login(request, user, backend=BACKEND_PATH)
+    else:
+        rotate_token(request)
     request.session[CONTEXT_KEY] = {
         "scope": "full" if reason is None else "limited",
         "user_id": user.pk,
@@ -141,6 +144,7 @@ def access_required(scope):
             request.access_user, request.access_context = user, data
             return view(request, *args, **kwargs)
 
+        guarded.requires_security_context = True
         return guarded
 
     return decorate

@@ -1,4 +1,4 @@
-"""Views for the restricted password-change context."""
+"""Standard and restricted password-change views."""
 
 from django.contrib import auth
 from django.core.exceptions import ValidationError
