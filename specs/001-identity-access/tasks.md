@@ -1,7 +1,7 @@
 # Zadania implementacyjne modułu identyfikacji uwierzytelniania i autoryzacji
 
 Status: w realizacji  
-Wersja: 0.15
+Wersja: 0.16
 
 Data: 2026-10-28
 
@@ -207,7 +207,7 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 
 ### T015 Middleware bezpieczeństwa i terminy
 
-- [ ] Sprawdzać aktualny stan konta, wersję sesji, bezczynność i ważność haseł.
+- [x] Sprawdzać aktualny stan konta, wersję sesji, bezczynność i ważność haseł.
 
 **Zakres:** middleware umieścić po obsłudze sesji i uwierzytelniania Django. Pobierać aktualne ustawienia; kontrolować termin przed odnowieniem aktywności. Obsłużyć granicę `teraz >= termin`, wartość `0` ważności hasła i wcześniejszy z terminów ograniczonej sesji. Pełną sesję z wygasłym hasłem przełączać na ograniczony dostęp. Nie przedłużać sesji żądaniami zasobów statycznych lub automatycznym odpytywaniem.
 
@@ -215,6 +215,8 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 **Wymagania:** TEMP-05, EXP-01, EXP-02, EXP-03, EXP-04, CONF-04, SESS-02, SESS-03, SESS-04, TECH-08.  
 **Kryteria:** AC-13, AC-21, AC-24, AC-25, AC-26, AC-27.  
 **Gotowe, gdy:** kontrolowany zegar potwierdza zachowanie przed granicą, na granicy i po niej; skrócenie ustawień obowiązuje w już istniejącej sesji przy kolejnym żądaniu.
+
+**Wykonano 2026-10-28:** middleware po sesjach i uwierzytelnianiu, kontrola przed odnowieniem aktywności, bieżąca polityka, przełączenie wygasłego hasła do ograniczonego kontekstu oraz oznaczanie widoków pasywnych. 18 nowych przypadków z kontrolowanym zegarem; szczegóły: [weryfikacja T015](../../docs/verification.md#t015-middleware-bezpieczeństwa-i-terminy).
 
 ### T016 Wylogowanie i zabezpieczenia sesji
 

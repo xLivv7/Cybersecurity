@@ -330,3 +330,15 @@ Data: 2026-10-28. Wynik: zakończone pomyślnie.
 Dodano `PasswordChangeForm`, `/password/change/` i funkcjonalny `/password/required/`. Pola nie usuwają spacji i nie pokazują ponownie wpisanych sekretów. Formularze korzystają z jednego serwisu E2, a identyfikatory, wersja i powód pochodzą wyłącznie z kontekstu serwera. Przy resecie stare pole ma etykietę „Hasło tymczasowe”. Strona opisuje długość, historię, listę popularnych haseł i aktywną regułę odległości; błędy serwisu są przypisane do pól. Sukces usuwa sesję i kieruje na logowanie ze stałą informacją o zmianie; wersja konta i mechanizm Django odbierają dostęp pozostałym sesjom.
 
 11 nowych testów HTTP sprawdza kompletne ścieżki VOLUNTARY/INITIAL/RESET/EXPIRED, błędne stare hasło, długość 13, potwierdzenie, odległość 3 i historię bez modyfikacji danych, akceptację odległości 4, wyłączenie reguły oraz drugiego klienta po zmianie. Pełny pytest: **187 testów przeszło**; Ruff, formatowanie (59 plików), Django i kontrola migracji przeszły. Nowych migracji brak; pełny zestaw poza sandboxem Windows.
+
+## T015 Middleware bezpieczeństwa i terminy
+
+Data: 2026-10-28. Wynik: zakończone pomyślnie.
+
+Dodano `SecurityContextMiddleware` po obsłudze sesji i uwierzytelniania. Dla każdego rozpoznanego widoku sprawdza aktualne konto i wersję oraz pobiera bieżące ustawienia. Najpierw weryfikuje bezczynność (granica jest już nieważna), dopiero potem zapisuje aktywność GET/POST. Nieprawidłowy lub przyszły czas kończy sesję. Pełny kontekst z wygasłym hasłem zostaje usunięty i zastąpiony ograniczonym kontekstem EXPIRED z nowym kluczem, bez logowania Django. Ograniczony kontekst dopuszcza jedynie wymuszoną zmianę i wylogowanie. Zasoby statyczne i widoki oznaczone `passive_view` nie przedłużają aktywności; przyszłe automatyczne odpytywanie musi korzystać z tego oznaczenia.
+
+18 nowych testów kontroluje moment przed limitem, na nim i po nim, odnowienie aktywności, skrócenie limitu istniejącej sesji, brak odnowienia przez statyczne zasoby i odpytywanie, wartość 0 ważności hasła, skrócenie ważności i granice 24 godzin, wcześniejszy termin sesji ograniczonej, brak przesuwania oryginalnego terminu tymczasowego oraz brak przywrócenia przez stare ciasteczko. Sprawdzono też blokadę, usunięcie, wersję i błędny czas aktywności.
+
+Pełny pytest: **205 testów przeszło**. Ruff, formatowanie (61 plików), Django i kontrola brakujących migracji przeszły. Nowych migracji brak; pełny zestaw poza sandboxem Windows.
+
+Przed T015 zastany wskaźnik `.git/refs/heads/main` zawierał znaki zerowe. Potwierdzono zgodność indeksu i plików z istniejącym commitem T014 `de0d7f1` oraz wpisem refloga. Zachowano kopię uszkodzonego wskaźnika w ignorowanym `.tools/git-recovery` i przywrócono go do pełnego identyfikatora T014. Kontrola Git nie wykazała uszkodzonych obiektów ani brakujących commitów; plików aplikacji i indeksu nie zmieniano przy naprawie.
