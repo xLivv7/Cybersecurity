@@ -3,6 +3,7 @@
 {% block content %}
   <p class="eyebrow">Cybersecurity Identity Access</p>
   <h1>Logowanie</h1>
+  {% if request.GET.changed == "1" %}<p>Hasło zostało zmienione. Zaloguj się nowym hasłem.</p>{% endif %}
   <p>Podaj login i hasło otrzymane od administratora lub własne hasło stałe.</p>
   <form method="post">
     {% csrf_token %}

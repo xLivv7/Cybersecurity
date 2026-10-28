@@ -1,7 +1,7 @@
 # Zadania implementacyjne modułu identyfikacji uwierzytelniania i autoryzacji
 
 Status: w realizacji  
-Wersja: 0.14
+Wersja: 0.15
 
 Data: 2026-10-28
 
@@ -194,7 +194,7 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 
 ### T014 Formularze zmiany hasła
 
-- [ ] Zbudować zwykłą i wymuszoną zmianę hasła na wspólnym serwisie.
+- [x] Zbudować zwykłą i wymuszoną zmianę hasła na wspólnym serwisie.
 
 **Zakres:** formularze pokazują aktywne zasady i konkretne błędy walidacji. W ograniczonej sesji po resecie ponownie wymagają podania hasła tymczasowego. Po sukcesie zamykają bieżącą sesję i kierują do logowania; pozostałe sesje tracą dostęp przez zmianę wersji konta.
 
@@ -202,6 +202,8 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 **Wymagania:** AUTH-06, PASS-04, PASS-05, TEMP-03, TEMP-08, EXP-03, SESS-05, UI-04.  
 **Kryteria:** AC-04, AC-05, AC-06, AC-07, AC-08, AC-09, AC-10, AC-11, AC-15.  
 **Gotowe, gdy:** każda ścieżka zmiany działa przez HTTP, odrzucenie zachowuje stan, a po sukcesie nowy sekret działa dopiero w ponownym logowaniu.
+
+**Wykonano 2026-10-28:** formularze zwykłej i wymuszonej zmiany, aktywne zasady, błędy pól, ponowne podanie hasła tymczasowego i zamknięcie sesji po sukcesie. 11 nowych testów HTTP; szczegóły: [weryfikacja T014](../../docs/verification.md#t014-formularze-zmiany-hasła).
 
 ### T015 Middleware bezpieczeństwa i terminy
 

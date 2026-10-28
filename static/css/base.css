@@ -58,3 +58,10 @@ h1 {
   outline: 3px solid #255985;
   outline-offset: 4px;
 }
+
+form { max-width: 34rem; }
+label { display: block; font-weight: 600; margin-bottom: 0.35rem; }
+input { width: 100%; padding: 0.75rem; border: 1px solid #617387; border-radius: 0.35rem; font: inherit; background: #fff; color: #172838; }
+button { padding: 0.75rem 1.25rem; border: 0; border-radius: 0.35rem; font: inherit; font-weight: 600; color: #fff; background: #255985; cursor: pointer; }
+.errorlist { padding: 0.75rem 1rem 0.75rem 2rem; border-left: 4px solid #a52121; color: #7a1616; background: #fff0f0; }
+a { color: #174e7e; text-underline-offset: 0.15em; }

@@ -322,3 +322,11 @@ Data: 2026-10-28. Wynik: zakończone pomyślnie.
 Dodano sesyjny `security_context` z identyfikatorami, wersją, zakresem, powodem i czasami, bez sekretów. Pełny dostęp korzysta z `auth.login`; ograniczony z anonimowego użytkownika Django, po usunięciu poprzedniej sesji i obrocie klucza. Dla resetu wymagany jest pomyślny wynik atomowego zużycia. Każdy chroniony widok sprawdza aktualność konta i wersji, a ograniczony kontekst resetu również poświadczenie i pierwotny termin. Powstał chroniony pulpit `/` i wejście `/password/required/`; formularz zmiany będzie podłączony w T014.
 
 5 nowych przypadków sprawdza obrót klucza i usunięcie poprzednich danych, sesję pełną, ograniczenia INITIAL/RESET/EXPIRED, anonimowość Django, brak sekretu w sesji, jednorazowość oraz utratę dostępu po resecie. Publiczny test renderowania bez zapytań został przeniesiony z chronionego `/` na `/login/`. Pełny pytest: **176 testów przeszło**; Ruff, formatowanie (57 plików), Django i kontrola migracji przeszły. Nowych migracji brak; pełny zestaw poza sandboxem Windows. Timeout będzie dodany w T015, wylogowanie w T016.
+
+## T014 Formularze zmiany hasła
+
+Data: 2026-10-28. Wynik: zakończone pomyślnie.
+
+Dodano `PasswordChangeForm`, `/password/change/` i funkcjonalny `/password/required/`. Pola nie usuwają spacji i nie pokazują ponownie wpisanych sekretów. Formularze korzystają z jednego serwisu E2, a identyfikatory, wersja i powód pochodzą wyłącznie z kontekstu serwera. Przy resecie stare pole ma etykietę „Hasło tymczasowe”. Strona opisuje długość, historię, listę popularnych haseł i aktywną regułę odległości; błędy serwisu są przypisane do pól. Sukces usuwa sesję i kieruje na logowanie ze stałą informacją o zmianie; wersja konta i mechanizm Django odbierają dostęp pozostałym sesjom.
+
+11 nowych testów HTTP sprawdza kompletne ścieżki VOLUNTARY/INITIAL/RESET/EXPIRED, błędne stare hasło, długość 13, potwierdzenie, odległość 3 i historię bez modyfikacji danych, akceptację odległości 4, wyłączenie reguły oraz drugiego klienta po zmianie. Pełny pytest: **187 testów przeszło**; Ruff, formatowanie (59 plików), Django i kontrola migracji przeszły. Nowych migracji brak; pełny zestaw poza sandboxem Windows.
