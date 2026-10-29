@@ -1,7 +1,7 @@
 # Zadania modułu ochrony przed botami i wyciekiem danych
 
-Status: E9 w realizacji; 6/20 wykonanych, w tym 6/18 obowiązkowych i 0/2 dodatkowych
-Wersja: 0.7
+Status: E9 ukończone; 7/20 wykonanych, w tym 7/18 obowiązkowych i 0/2 dodatkowych
+Wersja: 0.8
 Data: 2026-10-29
 Podstawa: [specyfikacja 0.2](spec.md), [plan 0.2](plan.md), [źródło wymagań](source.md).
 
@@ -87,13 +87,17 @@ Kontynuujemy numerację po T035. Pole wyboru oznacza wykonanie i weryfikację, n
 
 ### T042 Jednorazowość tokenów i regresja formularzy
 
-- [ ] Sprawdzić replay, granice, równoległość i dostępność nowych formularzy.
+- [x] Sprawdzić replay, granice, równoległość i dostępność nowych formularzy.
 
 **Zakres:** ponowne użycie tokenu również między formularzami, odmowa po wygaśnięciu, błąd hosta/akcji, równoległe żądania, reset wyzwania i brak liczenia błędów dostawcy jako błędów hasła. Dostosować istniejące testy do jawnej fixture poprawnej walidacji bez dodawania obejścia HTTP.
 
 **Zależności:** T040–T041.
 **Wymagania:** M2-CAP-01–06, M2-TEST-04; M2-AC-05–07, M2-AC-11.
 **Gotowe, gdy:** testy integracyjne sprawdzają skutki w bazie i sesji, ponowiony token nie autoryzuje drugiej operacji, a stare przypadki haseł/sesji zachowują wynik.
+
+**Wykonano 2026-10-29:** implementacja i odpowiednie testy zakończone; wyniki i ograniczenia odbioru zapisano w `docs/verification.md`.
+
+**Zakończenie E9:** T039–T042 ukończono i zweryfikowano offline. Cztery zadania mają oddzielne commity. Wynik końcowy: 374 testy pytest i 8 testów JavaScript PASS. Rzeczywiste klucze, widget w przeglądarce i dowody pozostają zakresem T053.
 
 ## E10 Pułapki Canarytokens
 
@@ -237,4 +241,4 @@ Ten etap jest opcjonalny zgodnie z załącznikiem. Jego pominięcie nie blokuje 
 
 ## Najbliższy krok
 
-Następne zadanie to **T040** w E9. Klucze dostawców, zewnętrzne tokeny, potwierdzenia poczty i dane autora będą potrzebne przed odpowiednimi odbiorami; nie blokują przygotowania modeli i testów. Ten dokument jest planem dalszej pracy, a nie poleceniem natychmiastowej implementacji wszystkich zadań.
+Następne zadanie to **T043** w E10. Klucze dostawców, zewnętrzne tokeny, potwierdzenia poczty i dane autora będą potrzebne przed odpowiednimi odbiorami; nie blokują przygotowania modeli i testów. Ten dokument jest planem dalszej pracy, a nie poleceniem natychmiastowej implementacji wszystkich zadań.

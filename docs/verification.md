@@ -475,3 +475,14 @@ Data: 2026-10-29. Formularze password/change i password/required korzystają ze 
 Weryfikacja: 36 testów CAPTCHA hasła, istniejących formularzy i ochrony sesji PASS. Nowych 16 przypadków obejmuje cztery konteksty: brak, błąd i ponowne użycie tokenu logowania nie wywołują usługi, nie zmieniają żadnego pola użytkownika, historii lub poświadczenia tymczasowego; poprawny token zmienia hasło i kończy sesję. HTML nie zwraca żadnego wpisanego hasła. Ruff, formatowanie i kontrole Django/migracji: PASS.
 
 Instrukcja `docs/module-2/turnstile.md` obejmuje konfigurację przed pierwszą zmianą ADMIN, awarię dostawcy oraz lokalne komendy operatora, które pozostają bez widgetu. Nie zmieniano ich działania ani prywatnego .env. Rzeczywiste klucze i odbiór przeglądarkowy pozostają osobnym T053.
+
+
+## T042 Jednorazowość tokenów i regresja formularzy — zakończenie E9
+
+Data: 2026-10-29. Uzupełniono HTTP testy granicy 300 sekund, powtórzonych pól, timeoutu dostawcy, cross-form replay i świeżego tokenu o niewłaściwej akcji. Błąd reguł hasła zużywa zweryfikowany token, a kolejne wysłanie wymaga nowego wyzwania. Równoległe żądania na osobnych połączeniach SQLite, z dwoma jednoczesnymi odpowiedziami sukcesu dostawcy, dopuszczają dokładnie jedną sesję i jeden wynik licznika. Adapter ponownie sprawdza czas wewnątrz transakcji oraz odrzuca wadliwy Unicode i nadmiernie zagnieżdżony JSON.
+
+Weryfikacja: **374 testy pytest PASS w 91,20 s** oraz **8 testów JavaScript PASS** (cztery istniejące odliczania i cztery widgetu). Testy skryptu wykonują rzeczywisty plik captcha.js z kontrolowanym DOM: pojedyncze renderowanie, ponowienie, wygaśnięcie, timeout, BFCache, błąd skryptu/dostawcy i komunikaty bez tokenów. Brak dostępu do storage i automatycznego wysłania formularza w środowisku testowym. Pełna regresja zachowuje role, hasła, ograniczone konteksty, limit prób i bezczynność. Ruff, formatowanie, kontrola Django, zgodności migracji, składni JS i diff: PASS.
+
+Zastosowano lokalnie migrację 0005 po kopii SQLite `.tools/backups/before-e9-*.sqlite3`; wszystkie dotychczasowe dane zachowano, dodano wyłącznie tabelę rejestru zużycia oraz wpisy typów/uprawnień Django. Prywatny .env pozostaje niezmieniony, klucze nie są skonfigurowane. Nie wykonywano połączeń Siteverify ani rzeczywistych wyzwań. M2-AC-05–07 mają wynik automatyczny, a realny odbiór i zrzuty pozostają w T053; instrukcja dla operatora to `docs/module-2/turnstile.md`.
+
+T039–T042 zamykają E9. Następne jest T043 w E10; nie rozpoczynano go w ramach tego polecenia.

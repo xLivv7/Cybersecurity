@@ -122,7 +122,7 @@ W panelu **Ustawienia → Limit błędnych logowań** ADMIN ustawia dodatni cał
 
 Ekran logowania pokazuje pozostały czas blokady. Kolejne próby i samo odliczanie nie przesuwają terminu. Po upływie czasu należy ponownie wysłać formularz; skrypt nie wysyła hasła automatycznie. Bez JavaScript pozostały czas jest widoczny w odpowiedzi serwera. Poprawne logowanie przed blokadą i koniec blokady zerują licznik; obniżenie progu obowiązuje przy następnej próbie. Takie same komunikaty i liczniki obowiązują dla nieistniejących loginów.
 
-Liczniki i zdarzenia zawierają HMAC znormalizowanego loginu, bez jego surowej wartości i bez haseł. Rotacja `DJANGO_SECRET_KEY` zmienia te klucze i resetuje korelację liczników. Zmiany schematu stosuje się poleceniem `uv run --locked python manage.py migrate`. E9 doda CAPTCHA i honeypot; E8 obejmuje limit konta.
+Liczniki i zdarzenia zawierają HMAC znormalizowanego loginu, bez jego surowej wartości i bez haseł. Rotacja `DJANGO_SECRET_KEY` zmienia te klucze i resetuje korelację liczników. Zmiany schematu stosuje się poleceniem `uv run --locked python manage.py migrate`. E9 dodaje CAPTCHA i honeypot; E8 obejmuje limit konta.
 
 Testy etapu E8:
 
@@ -133,7 +133,7 @@ uv run --locked pytest tests/security/test_login_models.py tests/security/test_l
 Test samego skryptu odliczania, wymagający Node.js:
 
 ```powershell
-node --test tests/js/login-lock.test.cjs
+node --test tests/js/login-lock.test.cjs tests/js/captcha.test.cjs
 ```
 
 Testy T005 można uruchomić osobno:
@@ -270,7 +270,7 @@ $env:UV_PYTHON_INSTALL_DIR = Join-Path (Get-Location) '.tools\python'
 
 ## Dokumentacja projektu
 
-[Indeks SDD i dalsza kolejność prac](specs/README.md) opisuje zakończony moduł 1 oraz plan modułu 2: ochronę przed botami i wyciekiem danych. Nowe zadania E8–E13 (T036–T055) są opisane w SDD; E8 jest zakończone, a następne zadanie to T039 w E9; limit IP jest zakresem dodatkowym.
+[Indeks SDD i dalsza kolejność prac](specs/README.md) opisuje zakończony moduł 1 oraz plan modułu 2: ochronę przed botami i wyciekiem danych. Nowe zadania E8–E13 (T036–T055) są opisane w SDD; E8–E9 są zakończone, a następne zadanie to T043 w E10; limit IP jest zakresem dodatkowym.
 
 - [Specyfikacja](specs/001-identity-access/spec.md)
 - [Plan techniczny](specs/001-identity-access/plan.md)

@@ -73,8 +73,8 @@ def validate_token(token, *, action, hostname):
         or not 0 < len(token) <= 2048
     ):
         return False
-    digest = hashlib.sha256(token.encode()).hexdigest()
     try:
+        digest = hashlib.sha256(token.encode()).hexdigest()
         if CaptchaRedemption.objects.filter(token_digest=digest).exists():
             return False
         result = _siteverify(token)
@@ -93,13 +93,24 @@ def validate_token(token, *, action, hostname):
         ):
             return False
         with transaction.atomic():
+            now = timezone.now()
+            if not issued <= now < issued + timedelta(seconds=300):
+                return False
             CaptchaRedemption.objects.filter(expires_at__lte=now).delete()
             _, created = CaptchaRedemption.objects.get_or_create(
                 token_digest=digest,
                 defaults={"expires_at": issued + timedelta(seconds=300)},
             )
         return created
-    except (URLError, OSError, ValueError, TypeError, OverflowError, OperationalError):
+    except (
+        URLError,
+        OSError,
+        ValueError,
+        TypeError,
+        OverflowError,
+        RecursionError,
+        OperationalError,
+    ):
         return False
 
 

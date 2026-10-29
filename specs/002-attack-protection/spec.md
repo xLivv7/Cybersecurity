@@ -1,6 +1,6 @@
 # Specyfikacja ochrony przed botami i wyciekiem danych
 
-Status: E9 w realizacji; ukończono T041, następne T042
+Status: E8–E9 ukończone lokalnie; E10 nierozpoczęte
 Wersja: 0.2
 Data: 2026-10-29
 Podstawa: [załącznik i decyzje](source.md), aplikacja modułu 1 w commicie `1cf5075`.
@@ -84,4 +84,4 @@ W module 1 `AUTH-03` przewiduje jednolitą odmowę logowania; moduł 2 rozszerza
 | M2-AC-12 | PDF zawiera komplet materiałów i cztery odpowiedzi, bez sekretów i fikcyjnych dowodów | REP-01–03 |
 | M2-AC-13, dodatkowe | Wiele loginów współdzieli limit IP, zmiana nagłówka go nie omija, granice działają | IP-01–03 |
 
-W kolumnie wymagań pominięto wspólny prefiks `M2-`. Podstawowy odbiór wymaga M2-AC-01–12; M2-AC-13 dotyczy rozszerzenia. Po E8 M2-AC-01–04 mają wynik PASS automatyczny; pozostałe kryteria oczekują na swoje etapy. Bieżące dowody zawiera [macierz odbioru](../../docs/module-2/acceptance.md). Plan lub sam test jednostkowy integracji nie oznacza zakończenia modułu.
+W kolumnie wymagań pominięto wspólny prefiks `M2-`. Podstawowy odbiór wymaga M2-AC-01–12; M2-AC-13 dotyczy rozszerzenia. Po E8–E9 M2-AC-01–07 mają wynik PASS automatyczny. Integrację z rzeczywistym widgetem i kluczami trzeba dodatkowo potwierdzić w T053; pozostałe kryteria oczekują na swoje etapy. Bieżące dowody zawiera [macierz odbioru](../../docs/module-2/acceptance.md). Plan lub sam test jednostkowy integracji nie oznacza zakończenia modułu.
