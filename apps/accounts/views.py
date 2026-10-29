@@ -11,15 +11,18 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.debug import sensitive_post_parameters, sensitive_variables
 from django.views.decorators.http import require_http_methods, require_POST
 
+from apps.security import captcha
+from apps.security.login_keys import login_identity_key
 from apps.security.login_limits import attempt_login, get_login_block
+from apps.security.models import SecurityEvent
 from apps.security.sessions import access_required, get_access
 
 from .backends import LOGIN_ERROR
 from .forms import LoginForm
 
 
-def _login_context(form):
-    context = {"form": form}
+def _login_context(request, form):
+    context = {"form": form, **captcha.widget_context(request, "login")}
     login = getattr(form, "cleaned_data", {}).get("login")
     deadline = get_login_block(login) if login else None
     if deadline is not None:
@@ -31,7 +34,7 @@ def _login_context(form):
     return context
 
 
-@sensitive_post_parameters("password")
+@sensitive_post_parameters("password", "cf-turnstile-response", "website")
 @sensitive_variables()
 @require_http_methods(["GET", "POST"])
 def login_view(request):
@@ -42,6 +45,22 @@ def login_view(request):
         )
     form = LoginForm(request.POST if request.method == "POST" else None)
     if request.method == "POST" and form.is_valid():
+        login = form.cleaned_data["login"]
+        if form.cleaned_data["website"]:
+            SecurityEvent.objects.create(
+                category="honeypot", identity_key=login_identity_key(login)
+            )
+            form.add_error(None, LOGIN_ERROR)
+            return render(request, "accounts/login.html", _login_context(request, form))
+        if get_login_block(login) is not None:
+            form.add_error(None, LOGIN_ERROR)
+            return render(request, "accounts/login.html", _login_context(request, form))
+        if not captcha.validate_request(request, "login"):
+            SecurityEvent.objects.create(
+                category="captcha_rejected", identity_key=login_identity_key(login)
+            )
+            form.add_error(None, captcha.CAPTCHA_ERROR)
+            return render(request, "accounts/login.html", _login_context(request, form))
         try:
             attempt = attempt_login(
                 request, form.cleaned_data["login"], form.cleaned_data["password"]
@@ -53,7 +72,9 @@ def login_view(request):
             context = attempt.context
             if context is None:
                 form.add_error(None, LOGIN_ERROR)
-                return render(request, "accounts/login.html", _login_context(form))
+                return render(
+                    request, "accounts/login.html", _login_context(request, form)
+                )
             next_url = request.GET.get("next", "")
             if (
                 context["scope"] == "full"
@@ -67,7 +88,7 @@ def login_view(request):
             return redirect(
                 "home" if context["scope"] == "full" else "security:password_required"
             )
-    return render(request, "accounts/login.html", _login_context(form))
+    return render(request, "accounts/login.html", _login_context(request, form))
 
 
 @access_required("full")

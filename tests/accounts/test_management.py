@@ -15,7 +15,7 @@ from apps.accounts.services import account_action, create_account, edit_account
 from apps.security.models import PasswordHistory
 from apps.security.selectors import get_security_settings
 
-pytestmark = pytest.mark.django_db
+pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("captcha_success")]
 PASSWORD = "previous long passphrase"
 
 

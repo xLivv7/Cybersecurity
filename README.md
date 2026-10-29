@@ -106,6 +106,8 @@ Model przechowuje także tryb poświadczeń, datę ostatniej zmiany hasła, znac
 
 ## Ustawienia bezpieczeństwa
 
+Od E9 logowanie i zmiana hasła wymagają kluczy Turnstile. Przed użyciem formularzy wykonaj [konfigurację CAPTCHA](docs/module-2/turnstile.md); przy braku kluczy operacja zostanie odrzucona.
+
 Migracje modułu `security` tworzą jeden rekord `SecuritySettings` o identyfikatorze `1`. Domyślnie reguła Levenshteina jest włączona, ważność hasła stałego wynosi `0` (bez okresowego wygasania), a limit bezczynności sesji to 15 minut. Dni muszą być całkowite i nieujemne, minuty całkowite i dodatnie.
 
 Na zalogowanych stronach licznik pokazuje pozostały czas sesji. Po wygaśnięciu strona automatycznie wraca do logowania. Limit liczymy od ostatniego żądania użytkownika, np. otwarcia dokumentu lub wysłania formularza; samo poruszanie myszą i wpisywanie tekstu go nie odnawia. Bierne sprawdzanie stanu w tle nie przedłuża sesji, ale uwzględnia aktywność w innych kartach. Przy braku połączenia po upływie znanego terminu chroniona treść jest ukrywana do ponownej weryfikacji. Bez JavaScript serwer nadal odrzuca wygasłą sesję przy następnym żądaniu. Po aktualizacji aplikacji odśwież otwarte strony, aby załadować skrypt licznika.

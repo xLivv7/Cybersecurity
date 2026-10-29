@@ -9,7 +9,7 @@ from apps.security.login_keys import login_identity_key
 from apps.security.models import LoginAttemptState
 from apps.security.selectors import get_security_settings
 
-pytestmark = pytest.mark.django_db
+pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("captcha_success")]
 PASSWORD = "previous long passphrase"
 SETTINGS_URL = "/management/security/"
 

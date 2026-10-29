@@ -1,7 +1,7 @@
 # Zadania modułu ochrony przed botami i wyciekiem danych
 
-Status: E9 w realizacji; 4/20 wykonanych, w tym 4/18 obowiązkowych i 0/2 dodatkowych
-Wersja: 0.5
+Status: E9 w realizacji; 5/20 wykonanych, w tym 5/18 obowiązkowych i 0/2 dodatkowych
+Wersja: 0.6
 Data: 2026-10-29
 Podstawa: [specyfikacja 0.2](spec.md), [plan 0.2](plan.md), [źródło wymagań](source.md).
 
@@ -63,13 +63,15 @@ Kontynuujemy numerację po T035. Pole wyboru oznacza wykonanie i weryfikację, n
 
 ### T040 CAPTCHA i pole-pułapka w logowaniu
 
-- [ ] Włączyć widget, honeypot i właściwą kolejność bramek przed weryfikacją hasła.
+- [x] Włączyć widget, honeypot i właściwą kolejność bramek przed weryfikacją hasła.
 
 **Zakres:** rozdzielić obecne uwierzytelnianie w `LoginForm.clean()` od walidacji pól. Honeypot przed dostawcą, blokada przed CAPTCHA, CAPTCHA przed hasłem. Odmowa CAPTCHA/honeypotu nie zwiększa licznika poświadczeń. Reset widgetu po błędzie, maskowane puste hasło w ponownym HTML, dostępność klawiaturą i dla czytników ekranu.
 
 **Zależności:** T037, T039.
 **Wymagania:** M2-CAP-01–04, M2-HONEY-01–02, M2-LOCK-06; M2-AC-05, M2-AC-07.
 **Gotowe, gdy:** bezpośredni POST bez JS/tokenu i niepusty honeypot są odrzucane bez weryfikacji hasła; prawidłowe logowanie zachowuje pełny/ograniczony kontekst modułu 1.
+
+**Wykonano 2026-10-29:** implementacja i odpowiednie testy zakończone; wyniki i ograniczenia odbioru zapisano w `docs/verification.md`.
 
 ### T041 CAPTCHA w każdej ścieżce zmiany hasła
 

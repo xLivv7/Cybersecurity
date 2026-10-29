@@ -457,3 +457,12 @@ Data: 2026-10-29. Dodano adapter Siteverify z HTTPS, timeoutem 5 sekund, zakazem
 Konfiguracje local/production odczytują TURNSTILE_SITE_KEY, TURNSTILE_SECRET_KEY i TURNSTILE_ALLOWED_HOSTNAMES, test pozostaje izolowany. Produkcja odrzuca brak konfiguracji, wildcardy i oficjalne klucze testowe; nie ma przełącznika omijającego walidację. Filtr raportowania ukrywa token z POST, sekret dostawcy i przyszły URL Canarytokens. `.env.example` zawiera wyłącznie puste klucze.
 
 Weryfikacja: 49 testów adaptera i ustawień PASS. Obejmują granicę 300 sekund, niewłaściwy host/akcję, replay, brak tokenu, powtórzone pola, błędy sieci/JSON/statusu, zbyt dużą odpowiedź, konfigurację produkcji i redakcję sekretów. Ruff, formatowanie, kontrola Django i zgodności migracji: PASS. Nie wykonywano połączeń do Cloudflare i nie zmieniano prywatnego .env. Integrację formularzy dodadzą T040–T041; rzeczywista konfiguracja i odbiór przeglądarkowy pozostają w T053.
+
+
+## T040 CAPTCHA i honeypot logowania
+
+Data: 2026-10-29. Formularz ma opcjonalny HiddenInput website z wyłączonym autocomplete, poza nawigacją klawiaturą. Wypełniona pułapka odrzuca próbę przed dostawcą i hasłem. Następne bramki to aktualna blokada, CAPTCHA i atomowe logowanie T037. Odmowa CAPTCHA/honeypotu zapisuje tylko kategorię i HMAC, bez zwiększenia licznika haseł. Wspólny widget ma polskie komunikaty, przycisk ponowienia, obsługę wygaśnięcia/błędu i BFCache; nowy HTML po błędzie otrzymuje nowe wyzwanie bez zwracania haseł/tokenów. Brak konfiguracji jest widoczny i nie omija ochrony.
+
+Weryfikacja: 40 testów logowania, CAPTCHA, sesji i limitów PASS, w tym rzeczywiste wyścigi SQLite. Nowe testy bez auto-tokenów sprawdzają brak/niepoprawny token, honeypot przed dostawcą/hasłem, blokadę przed dostawcą, replay, CSRF i brak konfiguracji. Ruff, formatowanie, kontrola Django/migracji i składni JS: PASS. Dostosowanie istniejących testów wykonano już w T040 (część planu T042), ponieważ od tej chwili wymagają tokenów: jawna fixture captcha_success w wybranych modułach nadaje unikalny token do POST, podmienia wyłącznie transport i nadal wykonuje prawdziwe kontrole adaptera oraz rejestr zużycia. Nie ma autouse, obejścia HTTP ani zmiany kodu produkcji na potrzeby testów.
+
+Instrukcja konfiguracji i pierwszego logowania ADMIN: `docs/module-2/turnstile.md`. Nie dodawano kluczy do prywatnego .env i nie wykonywano realnych wyzwań Cloudflare. T041 ochroni formularze zmiany hasła; T042 uzupełni testy jednorazowości i skryptu.

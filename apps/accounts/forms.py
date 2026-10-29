@@ -4,6 +4,12 @@ from django import forms
 
 
 class LoginForm(forms.Form):
+    website = forms.CharField(
+        required=False,
+        strip=False,
+        max_length=200,
+        widget=forms.HiddenInput(attrs={"autocomplete": "off"}),
+    )
     login = forms.CharField(
         label="Login",
         max_length=150,

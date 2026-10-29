@@ -3,11 +3,14 @@
 from copy import deepcopy
 from datetime import UTC, datetime, timedelta
 from itertools import count
+from urllib.parse import urlsplit
+from uuid import uuid4
 
 import pytest
 from django.core.management import call_command
 from django.db import connections
 from django.db.backends.sqlite3.base import DatabaseWrapper
+from django.test import Client
 from django.utils import timezone
 
 
@@ -25,6 +28,43 @@ class ControlledClock:
 
     def advance(self, delta: timedelta) -> None:
         self._current += delta
+
+
+@pytest.fixture
+def captcha_success(monkeypatch, settings):
+    """Explicit regression fixture: synthetic tokens, real validation, no HTTP bypass."""
+    from apps.security import captcha
+
+    settings.TURNSTILE_SITE_KEY = "offline-fixture-site"
+    settings.TURNSTILE_SECRET_KEY = "offline-fixture-secret"
+    settings.TURNSTILE_ALLOWED_HOSTNAMES = ["testserver", "localhost", "127.0.0.1"]
+    issued = {}
+    original = Client.post
+
+    def post(client, path, data=None, *args, **kwargs):
+        action = {
+            "/login/": "login",
+            "/password/change/": "password_change",
+            "/password/required/": "password_required",
+        }.get(urlsplit(path).path)
+        if action and (data is None or isinstance(data, dict)):
+            data = (data or {}).copy()
+            if captcha.TOKEN_FIELD not in data:
+                token = uuid4().hex
+                data[captcha.TOKEN_FIELD] = token
+                issued[token] = action
+        return original(client, path, data, *args, **kwargs)
+
+    def verify(token):
+        return {
+            "success": token in issued,
+            "hostname": "testserver",
+            "action": issued.get(token),
+            "challenge_ts": timezone.now().isoformat(),
+        }
+
+    monkeypatch.setattr(Client, "post", post)
+    monkeypatch.setattr(captcha, "_siteverify", verify)
 
 
 @pytest.fixture

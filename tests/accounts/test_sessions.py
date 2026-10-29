@@ -12,7 +12,7 @@ from apps.security.selectors import get_security_settings
 from apps.security.services import issue_temporary_credential
 from apps.security.sessions import CONTEXT_KEY
 
-pytestmark = pytest.mark.django_db
+pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("captcha_success")]
 PASSWORD = "previous long passphrase"
 
 

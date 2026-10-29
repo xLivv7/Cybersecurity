@@ -13,7 +13,7 @@ from apps.security.models import TemporaryCredential
 from apps.security.selectors import get_security_settings
 from apps.security.services import issue_temporary_credential
 
-pytestmark = pytest.mark.django_db
+pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("captcha_success")]
 PASSWORD = "  exact previous passphrase  "
 
 

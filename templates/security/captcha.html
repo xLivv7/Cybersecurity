@@ -1,0 +1,11 @@
+{% load static %}
+{% if captcha_site_key %}
+<div id="captcha-widget" data-site-key="{{ captcha_site_key }}" data-action="{{ captcha_action }}"></div>
+<p id="captcha-status" role="status">Potwierdź weryfikację CAPTCHA przed wysłaniem formularza.</p>
+<button id="captcha-retry" type="button">Ponów weryfikację CAPTCHA</button>
+<script src="{% static 'js/captcha.js' %}"></script>
+<script id="captcha-provider" src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=turnstileReady&amp;render=explicit" async defer></script>
+<noscript><p>CAPTCHA wymaga JavaScript. Bez weryfikacji formularz zostanie odrzucony.</p></noscript>
+{% else %}
+<p role="alert">{{ captcha_config_error }}</p>
+{% endif %}

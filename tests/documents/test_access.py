@@ -11,7 +11,7 @@ from apps.documents.policies import can
 from apps.documents.services import edit_document
 from apps.security.services import issue_temporary_credential
 
-pytestmark = pytest.mark.django_db
+pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("captcha_success")]
 PASSWORD = "previous long passphrase"
 
 
