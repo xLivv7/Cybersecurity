@@ -100,7 +100,7 @@ Panel kont: `/management/users/`. Ustawienia bezpieczeństwa: `/management/secur
 
 Każde konto ma jedną rolę: Administrator, Kierownik, Redaktor, Pracownik albo Czytelnik. Login jest niezmienny po utworzeniu, a unikalność jest sprawdzana na podstawie `strip().casefold()`, również dla znaków spoza ASCII.
 
-Rola Administrator jest zarezerwowana dla loginu `ADMIN`, zapisywanego zawsze w tej postaci. Konto to nie może zostać zablokowane, usunięte ani pozbawione roli. Nie używamy flag `is_staff` i `is_superuser`; próby ich nadania są odrzucane, a komenda `createsuperuser` nie służy do inicjalizacji kont projektu. Wbudowany panel Django Admin nie jest udostępniony.
+Rola Administrator jest zarezerwowana dla loginu `ADMIN`, zapisywanego zawsze w tej postaci. Konto to nie może zostać administracyjnie zablokowane, usunięte ani pozbawione roli. Czasowy limit błędnych logowań z modułu 2 dotyczy również ADMIN. Nie używamy flag `is_staff` i `is_superuser`; próby ich nadania są odrzucane, a komenda `createsuperuser` nie służy do inicjalizacji kont projektu. Wbudowany panel Django Admin nie jest udostępniony.
 
 Model przechowuje także tryb poświadczeń, datę ostatniej zmiany hasła, znacznik usunięcia i wersję sesji. Serwisy bezpieczeństwa i obsługa sesji sprawdzają te pola, aby odebrać dostęp po resecie, zmianie hasła lub unieważnieniu wersji konta.
 
@@ -112,7 +112,27 @@ Na zalogowanych stronach licznik pokazuje pozostały czas sesji. Po wygaśnięci
 
 Kod aplikacji pobiera bieżące wartości przez `apps.security.selectors.get_security_settings()`, wykonujący nowy odczyt z bazy przy każdym wywołaniu. Brak rekordu jest błędem inicjalizacji, bez zastępowania ustawień domyślnymi w pamięci. Zmiany zapisane przez model aktualizują `updated_at`, również przy użyciu `update_fields`.
 
-Moduł `apps.security.constants` definiuje stałe: minimalną długość hasła 14, minimalną odległość Levenshteina 4, historię 5 haseł stałych, długość hasła tymczasowego 16 i jego ważność 4 godziny. Konfiguracja walidatora długości Django korzysta ze wspólnej stałej. Panel umożliwia zmianę reguły odległości, ważności hasła i bezczynności; pozostałe wartości są stałe.
+Moduł `apps.security.constants` definiuje stałe: minimalną długość hasła 14, minimalną odległość Levenshteina 4, historię 5 haseł stałych, długość hasła tymczasowego 16 i jego ważność 4 godziny. Konfiguracja walidatora długości Django korzysta ze wspólnej stałej. Panel umożliwia zmianę reguły odległości, ważności hasła, bezczynności i progu błędnych logowań; pozostałe wartości są stałe.
+
+### Limit logowania po E8
+
+W panelu **Ustawienia → Limit błędnych logowań** ADMIN ustawia dodatni całkowity próg, domyślnie 5. Osiągnięcie progu blokuje następne logowania na 15 minut, także z poprawnym hasłem i także dla ADMIN. To oddzielny mechanizm od limitu bezczynności sesji. Wcześniej otwarte sesje działają zgodnie z ich własnymi zasadami.
+
+Ekran logowania pokazuje pozostały czas blokady. Kolejne próby i samo odliczanie nie przesuwają terminu. Po upływie czasu należy ponownie wysłać formularz; skrypt nie wysyła hasła automatycznie. Bez JavaScript pozostały czas jest widoczny w odpowiedzi serwera. Poprawne logowanie przed blokadą i koniec blokady zerują licznik; obniżenie progu obowiązuje przy następnej próbie. Takie same komunikaty i liczniki obowiązują dla nieistniejących loginów.
+
+Liczniki i zdarzenia zawierają HMAC znormalizowanego loginu, bez jego surowej wartości i bez haseł. Rotacja `DJANGO_SECRET_KEY` zmienia te klucze i resetuje korelację liczników. Zmiany schematu stosuje się poleceniem `uv run --locked python manage.py migrate`. E9 doda CAPTCHA i honeypot; E8 obejmuje limit konta.
+
+Testy etapu E8:
+
+```powershell
+uv run --locked pytest tests/security/test_login_models.py tests/security/test_login_limits.py tests/security/test_login_limit_ui.py
+```
+
+Test samego skryptu odliczania, wymagający Node.js:
+
+```powershell
+node --test tests/js/login-lock.test.cjs
+```
 
 Testy T005 można uruchomić osobno:
 
@@ -248,7 +268,7 @@ $env:UV_PYTHON_INSTALL_DIR = Join-Path (Get-Location) '.tools\python'
 
 ## Dokumentacja projektu
 
-[Indeks SDD i dalsza kolejność prac](specs/README.md) opisuje zakończony moduł 1 oraz plan modułu 2: ochronę przed botami i wyciekiem danych. Nowe zadania E8–E13 (T036–T055) są opisane w SDD; trwa realizacja E8; limit IP jest zakresem dodatkowym.
+[Indeks SDD i dalsza kolejność prac](specs/README.md) opisuje zakończony moduł 1 oraz plan modułu 2: ochronę przed botami i wyciekiem danych. Nowe zadania E8–E13 (T036–T055) są opisane w SDD; E8 jest zakończone, a następne zadanie to T039 w E9; limit IP jest zakresem dodatkowym.
 
 - [Specyfikacja](specs/001-identity-access/spec.md)
 - [Plan techniczny](specs/001-identity-access/plan.md)

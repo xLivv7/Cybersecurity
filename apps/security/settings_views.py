@@ -22,10 +22,12 @@ class SecuritySettingsForm(forms.ModelForm):
             "levenshtein_enabled",
             "password_max_age_days",
             "idle_timeout_minutes",
+            "login_failure_limit",
         ]
         help_texts = {
             "password_max_age_days": "0 wyłącza okresowe wygasanie. Dodatnia liczba oznacza pełne okresy 24 godzin.",
             "idle_timeout_minutes": "Dodatnia całkowita liczba minut. Zmiana dotyczy również istniejących sesji.",
+            "login_failure_limit": "Dodatnia całkowita liczba błędnych logowań. Po osiągnięciu progu logowanie jest blokowane na 15 minut. To osobna zasada od bezczynności sesji.",
         }
 
 

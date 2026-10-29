@@ -1,6 +1,6 @@
 # Plan techniczny ochrony przed botami i wyciekiem danych
 
-Status: E8 w realizacji; T036–T037 ukończone, następne T038
+Status: E8 ukończone; następne T039 w E9
 Wersja: 0.1
 Data: 2026-10-29
 Podstawa: [specyfikacja 0.1](spec.md), [decyzje i źródła](source.md).

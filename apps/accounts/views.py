@@ -1,18 +1,34 @@
 """Authentication, protected dashboard and POST-only logout endpoints."""
 
+from math import ceil
+
 from django.contrib import auth
 from django.core.exceptions import ValidationError
 from django.middleware.csrf import rotate_token
 from django.shortcuts import redirect, render
+from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.debug import sensitive_post_parameters, sensitive_variables
 from django.views.decorators.http import require_http_methods, require_POST
 
-from apps.security.login_limits import attempt_login
+from apps.security.login_limits import attempt_login, get_login_block
 from apps.security.sessions import access_required, get_access
 
 from .backends import LOGIN_ERROR
 from .forms import LoginForm
+
+
+def _login_context(form):
+    context = {"form": form}
+    login = getattr(form, "cleaned_data", {}).get("login")
+    deadline = get_login_block(login) if login else None
+    if deadline is not None:
+        seconds = max(0, ceil((deadline - timezone.now()).total_seconds()))
+        context.update(
+            login_block_seconds=seconds,
+            login_block_time=f"{seconds // 60}:{seconds % 60:02d}",
+        )
+    return context
 
 
 @sensitive_post_parameters("password")
@@ -37,7 +53,7 @@ def login_view(request):
             context = attempt.context
             if context is None:
                 form.add_error(None, LOGIN_ERROR)
-                return render(request, "accounts/login.html", {"form": form})
+                return render(request, "accounts/login.html", _login_context(form))
             next_url = request.GET.get("next", "")
             if (
                 context["scope"] == "full"
@@ -51,7 +67,7 @@ def login_view(request):
             return redirect(
                 "home" if context["scope"] == "full" else "security:password_required"
             )
-    return render(request, "accounts/login.html", {"form": form})
+    return render(request, "accounts/login.html", _login_context(form))
 
 
 @access_required("full")

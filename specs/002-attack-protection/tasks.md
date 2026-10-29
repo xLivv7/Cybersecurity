@@ -1,7 +1,7 @@
 # Zadania modułu ochrony przed botami i wyciekiem danych
 
-Status: E8 w realizacji; 2/20 wykonanych, w tym 2/18 obowiązkowych i 0/2 dodatkowych
-Wersja: 0.3
+Status: E8 ukończone; 3/20 wykonanych, w tym 3/18 obowiązkowych i 0/2 dodatkowych
+Wersja: 0.4
 Data: 2026-10-29
 Podstawa: [specyfikacja 0.1](spec.md), [plan 0.1](plan.md), [źródło wymagań](source.md).
 
@@ -35,13 +35,17 @@ Kontynuujemy numerację po T035. Pole wyboru oznacza wykonanie i weryfikację, n
 
 ### T038 Panel progu i komunikat czasu blokady
 
-- [ ] Udostępnić ustawienie ADMIN i czytelny pozostały czas na ekranie logowania.
+- [x] Udostępnić ustawienie ADMIN i czytelny pozostały czas na ekranie logowania.
 
 **Zakres:** jawne nowe pole w panelu, odrzucanie niepoprawnych wartości, odliczanie w interfejsie bez odpytywania przedłużającego blokadę. Bez JS serwer wyświetla aktualny czas po ponowieniu. Informacja nie rozróżnia kont istniejących od nieistniejących; brak automatycznego ponownego wysłania hasła.
 
 **Zależności:** T037.
 **Wymagania:** M2-LOCK-01, M2-LOCK-04, M2-LOCK-06; M2-AC-01–04.
 **Gotowe, gdy:** test HTTP potwierdza dostęp tylko ADMIN i odmowę z czasem, a test odliczania potwierdza dokładny termin i brak zapisu sekretów w JS/URL.
+
+**Wykonano 2026-10-29:** panel ADMIN zapisuje dodatni próg, a ekran logowania pokazuje zaokrąglony w górę czas blokady. Skrypt liczy lokalnie i nie wysyła żądań/hasła; bez JS czas podaje serwer. Testy HTTP obejmują role, CSRF, walidację oraz identyczne zasady dla znanych i nieznanych loginów. Zastosowano lokalną migrację po kopii zapasowej i sprawdzono zachowanie danych. Wyniki w `docs/verification.md`; M2-AC-01–04 w `docs/module-2/acceptance.md`.
+
+**Zakończenie E8:** T036–T038 ukończono i zweryfikowano lokalnie. Każde zadanie ma własny commit. CAPTCHA i honeypot należą do następnego etapu.
 
 ## E9 CAPTCHA i honeypot
 
@@ -227,4 +231,4 @@ Ten etap jest opcjonalny zgodnie z załącznikiem. Jego pominięcie nie blokuje 
 
 ## Najbliższy krok
 
-Kontynuować od **T038**. Klucze dostawców, zewnętrzne tokeny, potwierdzenia poczty i dane autora będą potrzebne przed odpowiednimi odbiorami; nie blokują przygotowania modeli i testów. Ten dokument jest planem dalszej pracy, a nie poleceniem natychmiastowej implementacji wszystkich zadań.
+Następne zadanie to **T039** w E9. Nie rozpoczynano go w ramach realizacji E8. Klucze dostawców, zewnętrzne tokeny, potwierdzenia poczty i dane autora będą potrzebne przed odpowiednimi odbiorami; nie blokują przygotowania modeli i testów. Ten dokument jest planem dalszej pracy, a nie poleceniem natychmiastowej implementacji wszystkich zadań.

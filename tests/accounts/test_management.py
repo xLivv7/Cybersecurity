@@ -165,7 +165,11 @@ def test_admin_forms_csrf_and_policy_validation(manager_admin, user_factory, cli
     for days, minutes in [("1.5", "15"), ("-1", "15"), ("0", "0")]:
         response = client.post(
             "/management/security/",
-            {"password_max_age_days": days, "idle_timeout_minutes": minutes},
+            {
+                "password_max_age_days": days,
+                "idle_timeout_minutes": minutes,
+                "login_failure_limit": "5",
+            },
         )
         assert response.context["form"].errors
         assert (
@@ -174,7 +178,11 @@ def test_admin_forms_csrf_and_policy_validation(manager_admin, user_factory, cli
     assert (
         client.post(
             "/management/security/",
-            {"password_max_age_days": "0", "idle_timeout_minutes": "5"},
+            {
+                "password_max_age_days": "0",
+                "idle_timeout_minutes": "5",
+                "login_failure_limit": "5",
+            },
         ).status_code
         == 302
     )

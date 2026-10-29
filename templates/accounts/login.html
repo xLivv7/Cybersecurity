@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Logowanie — Cybersecurity Identity Access{% endblock %}
 {% block content %}
   <p class="eyebrow">Cybersecurity Identity Access</p>
@@ -7,6 +8,10 @@
   {% if request.GET.logged_out == "1" %}<p>Wylogowano z aplikacji.</p>{% endif %}
   {% if request.GET.expired == "1" %}<p>Sesja wygasła. Zaloguj się ponownie.</p>{% endif %}
   <p>Podaj login i hasło otrzymane od administratora lub własne hasło stałe.</p>
+  {% if login_block_seconds %}
+  <p id="login-block" class="message" role="status" data-remaining-seconds="{{ login_block_seconds }}">Logowanie czasowo zablokowane. Spróbuj ponownie za <span id="login-block-countdown" aria-live="off">{{ login_block_time }}</span>.</p>
+  <script src="{% static 'js/login-lock.js' %}" defer></script>
+  {% endif %}
   <form method="post">
     {% csrf_token %}
     {{ form.as_p }}

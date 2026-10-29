@@ -1,6 +1,6 @@
 # Specyfikacja ochrony przed botami i wyciekiem danych
 
-Status: implementacja E8 w toku; ukończono T036–T037, panel i czas blokady przed odbiorem
+Status: E8 ukończone lokalnie; pozostałe etapy nierozpoczęte
 Wersja: 0.1
 Data: 2026-10-29
 Podstawa: [załącznik i decyzje](source.md), aplikacja modułu 1 w commicie `1cf5075`.
@@ -84,4 +84,4 @@ W module 1 `AUTH-03` przewiduje jednolitą odmowę logowania; moduł 2 rozszerza
 | M2-AC-12 | PDF zawiera komplet materiałów i cztery odpowiedzi, bez sekretów i fikcyjnych dowodów | REP-01–03 |
 | M2-AC-13, dodatkowe | Wiele loginów współdzieli limit IP, zmiana nagłówka go nie omija, granice działają | IP-01–03 |
 
-W kolumnie wymagań pominięto wspólny prefiks `M2-`. Podstawowy odbiór wymaga M2-AC-01–12; M2-AC-13 dotyczy rozszerzenia. Aktualnie wszystkie kryteria są **niezweryfikowane**. Plan lub sam test jednostkowy integracji nie oznacza zakończenia modułu.
+W kolumnie wymagań pominięto wspólny prefiks `M2-`. Podstawowy odbiór wymaga M2-AC-01–12; M2-AC-13 dotyczy rozszerzenia. Po E8 M2-AC-01–04 mają wynik PASS automatyczny; pozostałe kryteria oczekują na swoje etapy. Bieżące dowody zawiera [macierz odbioru](../../docs/module-2/acceptance.md). Plan lub sam test jednostkowy integracji nie oznacza zakończenia modułu.
