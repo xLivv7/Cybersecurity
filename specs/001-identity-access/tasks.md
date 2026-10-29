@@ -1,6 +1,8 @@
 # Zadania implementacyjne modułu identyfikacji uwierzytelniania i autoryzacji
 
 Status: ukończone i zweryfikowane lokalnie; komplet 35/35 zadań
+
+Dalsze zadania znajdują się w [module 2](../002-attack-protection/tasks.md), od T036. Ukończone T001–T035 pozostają zamknięte.
 Wersja: 0.21
 
 Data: 2026-10-29

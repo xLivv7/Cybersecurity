@@ -1,9 +1,11 @@
 # Plan techniczny modułu identyfikacji uwierzytelniania i autoryzacji
 
 Status: zrealizowano; odbiór lokalny zakończony
-Wersja: 0.2  
+Wersja: 0.2
 Data aktualizacji statusu: 2026-10-29
 Podstawa: [spec.md](spec.md), wersja 0.3
+
+Kontynuacja projektu: [plan modułu 2](../002-attack-protection/plan.md), etapy E8–E13. Niniejszy plan pozostaje opisem ukończonych E1–E7.
 
 ## 1. Cel i sposób pracy
 

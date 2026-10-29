@@ -1,8 +1,10 @@
 # Specyfikacja modułu identyfikacji uwierzytelniania i autoryzacji
 
 Status: zaimplementowano i odebrano lokalnie
-Wersja: 0.3  
+Wersja: 0.3
 Data aktualizacji statusu: 2026-10-29
+
+Dalsza rozbudowa: [moduł 2 — ochrona przed botami i wyciekiem danych](../002-attack-protection/spec.md). Wyłączenie CAPTCHA z zakresu niniejszego modułu pozostaje historyczną granicą modułu 1; nowe wymagania definiuje osobna specyfikacja. Zmiany komunikatów logowania AUTH-02–03 i UI-04 opisuje moduł 2.
 
 ## 1. Cel projektu
 
