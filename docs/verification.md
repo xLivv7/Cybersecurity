@@ -421,3 +421,10 @@ Weryfikacja:
 - Pełny pytest: **265 passed in 47.53s**. Dziewięć nowych przypadków w `tests/security/test_session_status.py`: sesja ADMIN i dokładna granica 15 minut mimo wielokrotnego odpytywania, aktywność drugiej karty, skrócenie polityki, wygaśnięcie hasła, ograniczone konteksty INITIAL/RESET i ich terminy, anonimowy dostęp bez tworzenia sesji, brak cache, metoda GET, włączenie skryptu i nieprawidłowy czas aktywności.
 - Skrypt `static/js/session.js` wykonany w Node z symulowanym DOM/zegarem/fetch: przekierowanie po wygaśnięciu, brak żądań przy samym odliczaniu, odnowienie w innej karcie, ukrycie treści offline i przywrócenie po weryfikacji, przejście do wymaganej zmiany hasła oraz odrzucenie wadliwej odpowiedzi. Lokalny harness: `.tools/check-session-script.cjs` (ignorowany). Nie wykonywano dodatkowej ręcznej próby przeglądarkowej.
 - Ruff, formatowanie 86 plików, `node --check static/js/session.js`, `manage.py check` i `git diff --check`: PASS.
+
+
+## T036 Modele i ustawienia ochrony logowania
+
+Data: 2026-10-29. Dodano `login_failure_limit=5`, `LOGIN_LOCK_SECONDS=900`, `LoginAttemptState` (unikalny HMAC loginu po strip/casefold, licznik, termin, wersja) i minimalny `SecurityEvent` (zamknięte kategorie, korelacja HMAC, czas). Model i baza wymuszają poprawne zakresy; brak pól na hasła, tokeny lub surowe loginy. Migracja `0004_login_protection` jest addytywna i nie wprowadza jeszcze limitu IP. Zmiana klucza Django zmienia korelację HMAC, co wymaga traktowania rotacji jako resetu tych liczników.
+
+Weryfikacja: 45 testów modeli logowania i ustawień PASS; w tym unikalność znormalizowanej tożsamości, błędne progi, ograniczenia bazy, dozwolone kategorie oraz migracje pustego schematu i istniejących danych. Test porównuje wszystkie pola użytkownika, historii, poświadczenia tymczasowego, dokumentu i dotychczasowej polityki przed i po migracji. Ruff, formatowanie, kontrola Django i zgodności migracji: PASS. Lokalnej bazy użytkowniczki nie migrowano; zostanie przygotowana po zakończeniu E8.

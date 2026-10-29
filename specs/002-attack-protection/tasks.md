@@ -1,7 +1,7 @@
 # Zadania modułu ochrony przed botami i wyciekiem danych
 
-Status: zaplanowane; 0/20 wykonanych, w tym 0/18 obowiązkowych i 0/2 dodatkowych
-Wersja: 0.1
+Status: E8 w realizacji; 1/20 wykonanych, w tym 1/18 obowiązkowych i 0/2 dodatkowych
+Wersja: 0.2
 Data: 2026-10-29
 Podstawa: [specyfikacja 0.1](spec.md), [plan 0.1](plan.md), [źródło wymagań](source.md).
 
@@ -11,13 +11,15 @@ Kontynuujemy numerację po T035. Pole wyboru oznacza wykonanie i weryfikację, n
 
 ### T036 Modele i ustawienia ochrony logowania
 
-- [ ] Rozszerzyć politykę i utworzyć stan limitu oraz bezpiecznych zdarzeń.
+- [x] Rozszerzyć politykę i utworzyć stan limitu oraz bezpiecznych zdarzeń.
 
 **Zakres:** `login_failure_limit=5`, stałe 900 sekund, stan licznika z unikalnym kluczem znormalizowanego loginu i terminem blokady, minimalny `SecurityEvent`. Walidacja dodatnich liczb całkowitych, migracje zachowujące istniejące konta i ustawienia. Nie dodawać jeszcze pól opcjonalnego limitu IP.
 
 **Zależności:** ukończony moduł 1, commit `1cf5075`.
 **Wymagania:** M2-LOCK-01–02, M2-LOCK-05–06, M2-CAN-05.
 **Gotowe, gdy:** migracje przechodzą na pustej i istniejącej testowej bazie, domyślne wartości i unikalność są sprawdzone, dane modułu 1 pozostają niezmienione.
+
+**Wykonano 2026-10-29:** migracja `0004_login_protection`, próg 5, stałe 900 sekund, unikalny klucz HMAC znormalizowanego loginu, liczniki i zdarzenia bez swobodnego payloadu. Testy migracji z pustego i istniejącego schematu oraz walidacji: PASS. Szczegóły w `docs/verification.md`.
 
 ### T037 Atomowy limit prób dla konta
 
@@ -223,4 +225,4 @@ Ten etap jest opcjonalny zgodnie z załącznikiem. Jego pominięcie nie blokuje 
 
 ## Najbliższy krok
 
-Rozpocząć **T036**. Klucze dostawców, zewnętrzne tokeny, potwierdzenia poczty i dane autora będą potrzebne przed odpowiednimi odbiorami; nie blokują przygotowania modeli i testów. Ten dokument jest planem dalszej pracy, a nie poleceniem natychmiastowej implementacji wszystkich zadań.
+Kontynuować od **T037**. Klucze dostawców, zewnętrzne tokeny, potwierdzenia poczty i dane autora będą potrzebne przed odpowiednimi odbiorami; nie blokują przygotowania modeli i testów. Ten dokument jest planem dalszej pracy, a nie poleceniem natychmiastowej implementacji wszystkich zadań.

@@ -1,7 +1,7 @@
 """A single database-backed security policy, read without a persistent cache."""
 
 from django.conf import settings
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models import F, Q
 from django.db.models.functions import Cast
@@ -24,12 +24,24 @@ class SecuritySettings(models.Model):
     idle_timeout_minutes = PolicyIntegerField(
         "limit bezczynności w minutach", default=15, validators=[MinValueValidator(1)]
     )
+    login_failure_limit = PolicyIntegerField(
+        "limit błędnych logowań", default=5, validators=[MinValueValidator(1)]
+    )
     updated_at = models.DateTimeField("ostatnia zmiana", auto_now=True)
 
     class Meta:
         verbose_name = "ustawienia bezpieczeństwa"
         verbose_name_plural = "ustawienia bezpieczeństwa"
         constraints = [
+            models.CheckConstraint(
+                condition=Q(login_failure_limit__gte=1)
+                & Q(
+                    login_failure_limit=Cast(
+                        F("login_failure_limit"), models.IntegerField()
+                    )
+                ),
+                name="security_valid_login_limit",
+            ),
             models.CheckConstraint(condition=Q(id=1), name="security_single_settings"),
             models.CheckConstraint(
                 condition=Q(password_max_age_days__gte=0)
@@ -56,6 +68,75 @@ class SecuritySettings(models.Model):
         # Partial saves must still record when the policy was changed.
         if kwargs.get("update_fields") is not None:
             kwargs["update_fields"] = set(kwargs["update_fields"]) | {"updated_at"}
+        return super().save(*args, **kwargs)
+
+
+IDENTITY_VALIDATOR = RegexValidator(
+    r"\A[0-9a-f]{64}\Z", "Nieprawidłowy klucz tożsamości."
+)
+
+
+class LoginAttemptState(models.Model):
+    """Shared login counter; never stores submitted logins or passwords."""
+
+    identity_key = models.CharField(
+        max_length=64, unique=True, validators=[IDENTITY_VALIDATOR]
+    )
+    failure_count = PolicyIntegerField(default=0, validators=[MinValueValidator(0)])
+    blocked_until = models.DateTimeField(null=True, blank=True)
+    version = models.PositiveBigIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(failure_count__gte=0)
+                & Q(failure_count=Cast(F("failure_count"), models.IntegerField())),
+                name="security_valid_failure_count",
+            ),
+            models.CheckConstraint(
+                condition=Q(blocked_until__isnull=True) | Q(failure_count__gte=1),
+                name="security_block_has_failures",
+            ),
+        ]
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+
+class SecurityEvent(models.Model):
+    """Fixed categories and opaque correlation only; no free-form payload."""
+
+    class Category(models.TextChoices):
+        CREDENTIAL_FAILURE = "credential_failure", "Błędne poświadczenia"
+        ACCOUNT_LOCKED = "account_locked", "Czasowa blokada logowania"
+        CAPTCHA_REJECTED = "captcha_rejected", "Odrzucona CAPTCHA"
+        HONEYPOT = "honeypot", "Wypełniona pułapka formularza"
+        CANARY_USED = "canary_used", "Użycie konta-pułapki"
+
+    category = models.CharField(max_length=32, choices=Category.choices)
+    identity_key = models.CharField(max_length=64, validators=[IDENTITY_VALIDATOR])
+    created_at = models.DateTimeField(default=current_time, db_index=True)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(
+                    category__in=[
+                        "credential_failure",
+                        "account_locked",
+                        "captcha_rejected",
+                        "honeypot",
+                        "canary_used",
+                    ]
+                ),
+                name="security_known_event_category",
+            ),
+        ]
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
         return super().save(*args, **kwargs)
 
 

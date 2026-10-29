@@ -1,6 +1,6 @@
 # Plan techniczny ochrony przed botami i wyciekiem danych
 
-Status: gotowy do rozpoczęcia T036; implementacja nierozpoczęta
+Status: E8 w realizacji; T036 ukończone, następne T037
 Wersja: 0.1
 Data: 2026-10-29
 Podstawa: [specyfikacja 0.1](spec.md), [decyzje i źródła](source.md).
@@ -11,7 +11,7 @@ Moduł 1 ma 35 zakończonych zadań, migracje kont, polityki bezpieczeństwa i d
 
 Obecnie `LoginForm.clean()` wywołuje `authenticate_login()`. Rozdzielimy walidację pól od uwierzytelnienia, żeby CAPTCHA i honeypot poprzedzały weryfikację hasła. Usługi `start_session()` oraz zmiany hasła zachowują sprawdzanie aktualnego stanu konta i wersji sesji.
 
-Plan dotyczy następnej implementacji. W tym kroku zmieniamy dokumentację SDD; nie konfigurujemy usług zewnętrznych i nie wysyłamy alertów.
+Plan jest realizowany od T036. Usługi zewnętrzne pozostają zakresem późniejszych etapów.
 
 ## 2. Odpowiedzialności i pliki docelowe
 

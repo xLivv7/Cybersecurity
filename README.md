@@ -248,7 +248,7 @@ $env:UV_PYTHON_INSTALL_DIR = Join-Path (Get-Location) '.tools\python'
 
 ## Dokumentacja projektu
 
-[Indeks SDD i dalsza kolejność prac](specs/README.md) opisuje zakończony moduł 1 oraz plan modułu 2: ochronę przed botami i wyciekiem danych. Nowe zadania E8–E13 (T036–T055) są zaplanowane, bez rozpoczętej implementacji; limit IP jest zakresem dodatkowym.
+[Indeks SDD i dalsza kolejność prac](specs/README.md) opisuje zakończony moduł 1 oraz plan modułu 2: ochronę przed botami i wyciekiem danych. Nowe zadania E8–E13 (T036–T055) są opisane w SDD; trwa realizacja E8; limit IP jest zakresem dodatkowym.
 
 - [Specyfikacja](specs/001-identity-access/spec.md)
 - [Plan techniczny](specs/001-identity-access/plan.md)

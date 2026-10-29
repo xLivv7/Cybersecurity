@@ -1,6 +1,6 @@
 # Specyfikacja ochrony przed botami i wyciekiem danych
 
-Status: zaplanowano; implementacja nierozpoczęta
+Status: implementacja E8 w toku; ukończono modele T036
 Wersja: 0.1
 Data: 2026-10-29
 Podstawa: [załącznik i decyzje](source.md), aplikacja modułu 1 w commicie `1cf5075`.
