@@ -69,7 +69,7 @@ def test_restricted_context_has_no_full_access(
         isinstance(required.wsgi_request.user, AnonymousUser)
         or required.wsgi_request.user.is_anonymous
     )
-    assert client.get("/management/users/").status_code == 404
+    assert client.get("/management/users/").url == "/password/required/"
     if credential_id:
         assert TemporaryCredential.objects.get(pk=credential_id).consumed_at is not None
         other = Client()

@@ -1,10 +1,15 @@
 """Standard and restricted password-change views."""
 
+import math
+from datetime import datetime
+
 from django.contrib import auth
 from django.core.exceptions import ValidationError
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
+from django.utils import timezone
 from django.views.decorators.debug import sensitive_post_parameters, sensitive_variables
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_GET, require_http_methods
 
 from .constants import (
     MIN_LEVENSHTEIN_DISTANCE,
@@ -12,8 +17,39 @@ from .constants import (
     PASSWORD_HISTORY_SIZE,
 )
 from .forms import PasswordChangeForm
+from .middleware import passive_view
 from .selectors import get_security_settings
-from .sessions import access_required
+from .sessions import access_required, get_access
+
+
+@passive_view
+@require_GET
+def session_status(request):
+    """Expose only a deadline and scope; polling never renews activity."""
+    access = get_access(request)
+    if access is None:
+        return JsonResponse({"active": False})
+    _, context = access
+    now = timezone.now()
+    remaining = (
+        get_security_settings().idle_timeout_minutes * 60
+        - (now - datetime.fromisoformat(context["last_activity"])).total_seconds()
+    )
+    if context.get("expires_at"):
+        remaining = min(
+            remaining,
+            (datetime.fromisoformat(context["expires_at"]) - now).total_seconds(),
+        )
+    if remaining <= 0:
+        auth.logout(request)
+        return JsonResponse({"active": False})
+    return JsonResponse(
+        {
+            "active": True,
+            "scope": context["scope"],
+            "remaining_seconds": math.ceil(remaining),
+        }
+    )
 
 
 @sensitive_variables()

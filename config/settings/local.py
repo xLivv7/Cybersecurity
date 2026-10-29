@@ -10,6 +10,7 @@ load_dotenv(BASE_DIR / ".env", override=False)
 
 SECRET_KEY = secret_key_from_environment()
 DEBUG = True
+ALLOW_DEMO_DATA = True
 ALLOWED_HOSTS = hosts_from_environment("localhost,127.0.0.1,[::1]")
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False

@@ -1,6 +1,6 @@
 # Cybersecurity Identity Access
 
-Edukacyjny projekt aplikacji webowej w Pythonie do zarządzania kontami, hasłami i uprawnieniami. Po etapach E1–E3 działają logowanie, pełne i ograniczone sesje, zmiana hasła, wylogowanie i kontrola terminów. Panel kont, inicjalizacja ADMIN oraz dokumenty powstaną w kolejnych etapach.
+Edukacyjna aplikacja Django do zarządzania kontami, hasłami i dokumentami. Obejmuje logowanie, cykl życia haseł, sesje, panel administratora oraz pięć ról z kontrolą dostępu po stronie serwera. Interfejs jest w języku polskim i działa na komputerze oraz telefonie. Projekt jest przeznaczony do uruchomienia lokalnego; publikacja kodu i publiczne wdrożenie są osobnymi działaniami.
 
 ## Środowisko
 
@@ -41,6 +41,8 @@ Nazwy ustawień są opisane także w `.env.example`. Lokalnie `.env` jest odczyt
 
 Uruchom kontrolę konfiguracji, zastosuj migracje i uruchom serwer:
 
+Po aktualizacji źródeł wykonaj ponownie `migrate` również dla istniejącej bazy. Sam restart serwera nie tworzy nowych tabel. Błąd `no such table: documents_document` oznacza niezastosowaną migrację modułu dokumentów.
+
 ```powershell
 uv run --locked python manage.py check
 uv run --locked python manage.py migrate --noinput
@@ -49,7 +51,50 @@ uv run --locked python manage.py runserver
 
 Wejście pod [http://127.0.0.1:8000/](http://127.0.0.1:8000/) kieruje niezalogowaną osobę na [formularz logowania](http://127.0.0.1:8000/login/). Serwer zatrzymasz przez `Ctrl+C`.
 
-Pierwsza migracja tworzy własną tabelę `accounts_user` zamiast domyślnej `auth_user`. Migracje można bezpiecznie uruchamiać ponownie; Django pomija już zastosowane operacje. Lokalna baza nie jest wersjonowana. Migracja nie tworzy jeszcze żadnych kont, również `ADMIN`; komendy inicjalizacji i odzyskiwania administratora powstaną w T017.
+Pierwsza migracja tworzy własną tabelę `accounts_user` zamiast domyślnej `auth_user`. Migracje tworzą też ustawienia bezpieczeństwa oraz tabele historii haseł, poświadczeń i dokumentów. Można je bezpiecznie uruchamiać ponownie. Lokalna baza nie jest wersjonowana; migracje nie tworzą kont.
+
+## Pierwszy ADMIN i demonstracja
+
+Po migracjach utwórz administratora. Hasło zostanie pobrane dwukrotnie w ukrytym polu terminala, nigdy jako argument komendy:
+
+```powershell
+uv run --locked python manage.py init_admin
+uv run --locked python manage.py seed_demo
+uv run --locked python manage.py runserver
+```
+
+Wejdź na `/login/`, użyj loginu `ADMIN` i hasła podanego w terminalu. Pierwsze logowanie umożliwia wyłącznie ustawienie własnego hasła stałego. Po zmianie zaloguj się ponownie. Ponowne `init_admin` nie nadpisuje istniejącego konta.
+
+`seed_demo` działa tylko w konfiguracji lokalnej. Tworzy sześć kont poza ADMIN oraz dokument opublikowany i szkice dwóch autorów. Generuje hasła przy wykonaniu i pokazuje je raz w terminalu. Każde ma 16 znaków, ważność 4 godzin i wymaga zmiany przy pierwszym logowaniu.
+
+| Login | Rola |
+|---|---|
+| `kierownik` | Kierownik |
+| `redaktor` | Redaktor |
+| `pracownik1`, `pracownik2` | Pracownik |
+| `czytelnik1`, `czytelnik2` | Czytelnik |
+
+Ponowne wykonanie `seed_demo` nie duplikuje danych i nie zmienia istniejących haseł. Jawny reset kont demo (bez ADMIN):
+
+```powershell
+uv run --locked python manage.py seed_demo --reset-passwords
+```
+
+Zapomniane lub zużyte hasło tymczasowe wymaga nowego resetu przez administratora. Dostęp do ADMIN odzyskuje operator lokalnie, potwierdzając operację wpisaniem `ADMIN`:
+
+```powershell
+uv run --locked python manage.py recover_admin
+```
+
+Odzyskanie wydaje nowe hasło tymczasowe, unieważnia sesje i zachowuje historię. Nie ma anonimowego odzyskiwania przez WWW ani publicznej rejestracji. Haseł nie przekazuj w URL, argumentach poleceń, logach ani plikach projektu.
+
+## Role i dokumenty
+
+Każda rola czyta opublikowane dokumenty. Administrator zarządza kontami i bezpieczeństwem, ale nie ma dostępu do szkiców. Kierownik czyta i edytuje wszystkie szkice, tworzy je, publikuje i wycofuje publikację. Redaktor tworzy, czyta i edytuje wszystkie szkice, ale nie publikuje. Pracownik tworzy i edytuje wyłącznie własne szkice. Czytelnik ma tylko odczyt publikacji.
+
+Publikację trzeba wycofać przed edycją. Dokumenty są tekstowe i nie mają funkcji usuwania ani załączników. Dane HTML są wyświetlane jako tekst. Konto autora można usunąć logicznie bez utraty autorstwa dokumentów; login pozostaje zarezerwowany.
+
+Panel kont: `/management/users/`. Ustawienia bezpieczeństwa: `/management/security/`. Oba są dostępne wyłącznie dla ADMIN. Reset, blokada i usunięcie wymagają potwierdzenia z nazwą konta i opisem skutku. Wydane hasło jest pokazywane raz w odpowiedzi bez cache, nigdy w sesji. Lista dokumentów: `/documents/`; anonimowe wejście wraca po zalogowaniu do bezpiecznego lokalnego adresu. Brak uprawnień daje 403, a nieistniejący dokument 404.
 
 ## Model konta
 
@@ -63,9 +108,11 @@ Model przechowuje także tryb poświadczeń, datę ostatniej zmiany hasła, znac
 
 Migracje modułu `security` tworzą jeden rekord `SecuritySettings` o identyfikatorze `1`. Domyślnie reguła Levenshteina jest włączona, ważność hasła stałego wynosi `0` (bez okresowego wygasania), a limit bezczynności sesji to 15 minut. Dni muszą być całkowite i nieujemne, minuty całkowite i dodatnie.
 
+Na zalogowanych stronach licznik pokazuje pozostały czas sesji. Po wygaśnięciu strona automatycznie wraca do logowania. Limit liczymy od ostatniego żądania użytkownika, np. otwarcia dokumentu lub wysłania formularza; samo poruszanie myszą i wpisywanie tekstu go nie odnawia. Bierne sprawdzanie stanu w tle nie przedłuża sesji, ale uwzględnia aktywność w innych kartach. Przy braku połączenia po upływie znanego terminu chroniona treść jest ukrywana do ponownej weryfikacji. Bez JavaScript serwer nadal odrzuca wygasłą sesję przy następnym żądaniu. Po aktualizacji aplikacji odśwież otwarte strony, aby załadować skrypt licznika.
+
 Kod aplikacji pobiera bieżące wartości przez `apps.security.selectors.get_security_settings()`, wykonujący nowy odczyt z bazy przy każdym wywołaniu. Brak rekordu jest błędem inicjalizacji, bez zastępowania ustawień domyślnymi w pamięci. Zmiany zapisane przez model aktualizują `updated_at`, również przy użyciu `update_fields`.
 
-Moduł `apps.security.constants` definiuje stałe: minimalną długość hasła 14, minimalną odległość Levenshteina 4, historię 5 haseł stałych, długość hasła tymczasowego 16 i jego ważność 4 godziny. Konfiguracja walidatora długości Django korzysta ze wspólnej stałej. Działają walidatory, serwisy bezpieczeństwa i sesje HTTP; panel zmiany ustawień powstanie w T021.
+Moduł `apps.security.constants` definiuje stałe: minimalną długość hasła 14, minimalną odległość Levenshteina 4, historię 5 haseł stałych, długość hasła tymczasowego 16 i jego ważność 4 godziny. Konfiguracja walidatora długości Django korzysta ze wspólnej stałej. Panel umożliwia zmianę reguły odległości, ważności hasła i bezczynności; pozostałe wartości są stałe.
 
 Testy T005 można uruchomić osobno:
 
@@ -117,7 +164,7 @@ Pierwsze hasło ADMIN, ważne hasło tymczasowe i wygasłe hasło stałe dają w
 
 Chronione odpowiedzi i widoki uwierzytelniania mają `Cache-Control: no-store`. Wylogowanie usuwa sesję z bazy; GET jej nie kończy, a stare ciasteczko nie przywraca dostępu. Sesyjne ciasteczka mają `HttpOnly` i `SameSite=Lax`, a w HTTPS także `Secure`. Token CSRF jest obracany również przy ograniczonym logowaniu, przełączeniu do wymuszonej zmiany i wylogowaniu. Filtr raportowania ukrywa sekrety POST oraz ciasteczka również w lokalnym trybie debugowania.
 
-Migracje nie tworzą kont. Lokalna inicjalizacja `ADMIN` jest następnym zadaniem T017; nie ma publicznej rejestracji ani wbudowanego panelu Django Admin. Kompletne ścieżki E3 są obecnie weryfikowane na kontach tworzonych w izolowanych testach:
+Nie ma publicznej rejestracji ani wbudowanego panelu Django Admin. Konta inicjalizuje operator lub tworzy administrator. Ścieżki uwierzytelniania są także weryfikowane na kontach tworzonych w izolowanych testach:
 
 ```powershell
 uv run --locked pytest tests/accounts/test_login.py tests/accounts/test_sessions.py tests/security/test_password_views.py tests/security/test_session_limits.py tests/security/test_session_protection.py

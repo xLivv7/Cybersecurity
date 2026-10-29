@@ -9,8 +9,22 @@
   </head>
   <body>
     <a class="skip-link" href="#main-content">Przejdź do treści</a>
+    <header class="site-header"><div class="header-inner">
+      <a class="brand" href="{% url 'home' %}"><span class="brand-mark" aria-hidden="true">C</span><span>Cybersecurity<span class="brand-subtitle">Identity & Access · Laboratorium</span></span></a>
+      {% if user.is_authenticated %}<nav aria-label="Główna nawigacja"><a href="{% url 'home' %}">Pulpit</a><a href="{% url 'documents:list' %}">Dokumenty</a>{% if user.role == 'ADMIN' %}<a href="{% url 'accounts:list' %}">Konta</a><a href="{% url 'security:settings' %}">Ustawienia</a>{% endif %}</nav>{% endif %}
+      {% if request.session.security_context %}{% include "accounts/logout_form.html" %}{% endif %}
+    </div></header>
+    {% if request.session.security_context %}
+    <div id="session-status" class="session-status" data-status-url="{% url 'security:session_status' %}" data-login-url="{% url 'accounts:login' %}?expired=1" data-required-url="{% url 'security:password_required' %}">
+      <span id="session-countdown" aria-live="off">Sprawdzanie czasu sesji…</span>
+      <span id="session-notice" role="status"></span>
+    </div>
+    <script src="{% static 'js/session.js' %}" defer></script>
+    {% endif %}
     <main id="main-content" class="page" tabindex="-1">
+      {% if messages %}<div class="messages" role="status" aria-live="polite">{% for message in messages %}<p class="message {{ message.tags }}">{{ message }}</p>{% endfor %}</div>{% endif %}
       {% block content %}{% endblock %}
     </main>
+    <footer class="site-footer">Projekt edukacyjny · Konta, hasła i kontrola dostępu</footer>
   </body>
 </html>

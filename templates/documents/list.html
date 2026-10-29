@@ -1,0 +1,4 @@
+{% extends "base.html" %}{% block title %}Dokumenty — Cybersecurity Identity Access{% endblock %}
+{% block content %}<p class="eyebrow">Przestrzeń treści</p><h1>Dokumenty</h1><p class="intro">Opublikowane treści oraz szkice dostępne w Twojej roli.</p>
+{% if can_create %}<p><a class="button" href="{% url 'documents:create' %}">Utwórz szkic</a></p>{% endif %}
+<div class="document-grid">{% for document in documents %}<article class="card"><span class="badge">{{ document.get_status_display }}</span><h2><a href="{% url 'documents:detail' document.pk %}">{{ document.title }}</a></h2><p>Autor: {{ document.author.username }}</p><p class="muted">Zmieniono {{ document.updated_at|date:"d.m.Y H:i" }}</p></article>{% empty %}<section class="card"><h2>Brak dokumentów</h2><p>Nie ma jeszcze treści dostępnych dla Twojego konta.</p></section>{% endfor %}</div>{% endblock %}

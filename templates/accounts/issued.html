@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}Hasło tymczasowe — {{ account.username }}{% endblock %}
+{% block content %}<p class="eyebrow">Konto: {{ account.username }}</p><h1>Hasło tymczasowe</h1>
+<section class="card"><p>Przekaż je użytkownikowi bezpiecznie poza aplikacją. To jedyna prezentacja tego hasła.</p><p class="issued-secret"><code>{{ issued.secret }}</code></p>
+<p>Ważne do {{ issued.expires_at|date:"d.m.Y H:i" }} (4 godziny od wydania). Pierwsze użycie wymaga ustawienia własnego hasła. Utrata ograniczonej sesji po użyciu wymaga nowego resetu.</p></section>
+<p><a href="{% url 'accounts:list' %}">Wróć do listy kont</a></p>{% endblock %}

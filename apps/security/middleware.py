@@ -47,6 +47,8 @@ class SecurityContextMiddleware(MiddlewareMixin):
                 raise ValueError
         except (KeyError, TypeError, ValueError):
             auth.logout(request)
+            if request.resolver_match.view_name == "security:session_status":
+                return None
             return redirect("accounts:login")
         if data["scope"] == "full" and password_expired(user, policy, now):
             data = {**data, "scope": "limited", "reason": ChangeReason.EXPIRED}
@@ -58,6 +60,7 @@ class SecurityContextMiddleware(MiddlewareMixin):
         if data["scope"] == "limited" and request.resolver_match.view_name not in (
             "security:password_required",
             "accounts:logout",
+            "security:session_status",
         ):
             return redirect("security:password_required")
         if (
@@ -74,6 +77,7 @@ class SecurityContextMiddleware(MiddlewareMixin):
             "/logout/",
             "/password/change/",
             "/password/required/",
+            "/session/status/",
         ) or getattr(request, "security_private_response", False):
             add_never_cache_headers(response)
         return response

@@ -1,10 +1,12 @@
 {% extends "base.html" %}
 {% block title %}Pulpit — Cybersecurity Identity Access{% endblock %}
 {% block content %}
-  <p class="eyebrow">Cybersecurity Identity Access</p>
-  <h1>Pulpit</h1>
-  <p>Zalogowano jako <strong>{{ account.username }}</strong>.</p>
-  <p>Rola: {{ account.get_role_display }}</p>
-  <p><a href="/password/change/">Zmień własne hasło</a></p>
-  {% include "accounts/logout_form.html" %}
+  <p class="eyebrow">Twoja przestrzeń</p><h1>Pulpit</h1>
+  <p class="intro">Witaj, <strong>{{ account.first_name|default:account.username }}</strong>. Poniżej znajdziesz funkcje dostępne dla Twojej roli.</p>
+  <div class="summary-strip"><span class="badge">{{ account.get_role_display }}</span><span>Login: {{ account.username }}</span><span>Limit bezczynności: {{ policy.idle_timeout_minutes }} min</span></div>
+  <div class="document-grid">
+    <section class="card"><p class="eyebrow">Treści</p><h2>Dokumenty</h2><p>Dostępne dokumenty: {{ document_count }}. Przeglądaj opublikowane treści i szkice zgodnie ze swoją rolą.</p><a class="button" href="{% url 'documents:list' %}">Otwórz dokumenty</a>{% if can_create %}<p><a href="{% url 'documents:create' %}">Utwórz nowy szkic</a></p>{% endif %}</section>
+    <section class="card"><p class="eyebrow">Bezpieczeństwo</p><h2>Twoje konto</h2><p>Zmień hasło, zachowując minimum 14 znaków i zasady historii. Po zmianie zaloguj się ponownie.</p><a class="button secondary" href="{% url 'security:password_change' %}">Zmień własne hasło</a></section>
+    {% if account.role == 'ADMIN' %}<section class="card"><p class="eyebrow">Administracja</p><h2>Konta i zasady</h2><p>Twórz konta, nadawaj role, resetuj dostęp i zarządzaj polityką bezpieczeństwa.</p><a class="button" href="{% url 'accounts:list' %}">Zarządzaj kontami</a><p><a href="{% url 'security:settings' %}">Ustawienia bezpieczeństwa</a></p></section>{% endif %}
+  </div>
 {% endblock %}

@@ -356,3 +356,68 @@ Sprawdzono również zmianę polityki po utworzeniu kontekstu EXPIRED: wyłącze
 9 nowych przypadków obejmuje POST/CSRF/GET dla obu kontekstów, obrót tokenów CSRF, brak przywrócenia przez stary klucz, odrzucenie zmiany hasła bez CSRF, nagłówki, ciasteczka HTTPS, redakcję prawdziwego tekstowego raportu błędu w DEBUG, brak sekretów i klucza sesji w logach/sesjach/przekierowaniach oraz zmianę polityki ograniczonego kontekstu. README i lista zadań opisują aktualny E3 i wskazują T017 jako następny krok.
 
 Końcowy pełny pytest E3: **214 testów przeszło w 218,90 s**. Ruff, formatowanie (63 pliki Pythona), kontrola Django, brakujących migracji i `git diff --check` przeszły. Testy używały izolowanych baz i rzeczywistego Argon2id; pełny zestaw uruchomiono na Windows poza sandboxem. W E3 nie powstały nowe migracje i nie tworzono kont w lokalnej bazie. Wynik Linux i zdalnego CI pozostaje do potwierdzenia po publikacji. Nie wykonywano pushu, publicznego wdrożenia ani zmian `.vscode`.
+
+## Aktualizacja istniejącej lokalnej bazy po odbiorze
+
+Data: 2026-10-28. Użytkowniczka uruchomiła istniejącą lokalną bazę na porcie 8000, w której nie była jeszcze zastosowana `documents.0001_initial`. Pulpit zgłaszał `no such table: documents_document`. Wcześniejszy odbiór dotyczył bazy QA i czystej kopii, więc nie aktualizował tej bazy.
+
+Potwierdzono jedną brakującą migrację tworzącą tabelę dokumentów. Przed zastosowaniem wykonano spójną kopię SQLite przez API backup do ignorowanego `.tools/backups`. `migrate --noinput` zakończyło się poprawnie; porównano identyfikatory kont, loginy, hashe haseł, role, aktywność, tryby poświadczeń, daty zmiany haseł i wersje sesji przed/po — bez zmian. `showmigrations documents` wskazuje `[X] 0001_initial`, kontrola Django przechodzi, a rzeczywisty widok pulpitu ADMIN renderuje HTTP 200 z lokalnej bazy przez RequestFactory, bez tworzenia sesji i zmiany hasła. README uzupełniono o aktualizowanie istniejącej bazy po zmianie źródeł. Nie wykonywano commita.
+
+## Odbiór T017–T035 i zamknięcie E1–E7
+
+Data: 2026-10-28. Wynik: zakończone pomyślnie, bez commitowania.
+
+Wykonano panel kont i bezpieczeństwa, dokumenty i macierz ról, interfejs responsywny, dane demo oraz odbiór czystej kopii. Pełny zestaw w źródłach: **256 testów przeszło**; w osobnej czystej kopii z nowym środowiskiem i bazą: **256 testów przeszło**. Ruff, Django, migracje, actionlint i kontrola diff przeszły. Użytkowniczka potwierdziła zmianę hasła i ponowne logowanie pracownik1 w QA. Brak nowych commitów, pushu i publicznego wdrożenia.
+
+Szczegółowe dowody, zakres przeglądu, czysta kopia i ograniczenia: [pełny odbiór](final-verification.md). Decyzje: [bezpieczeństwo](decisions/security.md).
+
+
+Wynik PASS oznacza potwierdzenie zachowania testem automatycznym; uwagi o ręcznym odbiorze nie są ukryte przez tę tabelę.
+
+| Kryterium | Wynik | Dowód |
+|---|---|---|
+| AC-01 | PASS | `tests/accounts/test_login.py::test_refusals_share_one_message` |
+| AC-02 | PASS | `tests/accounts/test_sessions.py::test_full_login_rotates_key_and_protects_dashboard`, macierz dokumentów |
+| AC-03 | PASS | `test_restricted_context_has_no_full_access`, ograniczony formularz w przeglądarce |
+| AC-04 | PASS | `test_minimum_length_boundary`, `test_rejection_shows_errors_and_preserves_account` |
+| AC-05 | PASS | `test_minimum_length_boundary` (14 znaków) |
+| AC-06 | PASS | `test_confirmation_and_old_secret_must_match_exactly`, testy formularzy |
+| AC-07 | PASS | ten sam test oraz HTTP z błędnym starym hasłem |
+| AC-08 | PASS | `tests/security/test_levenshtein.py::test_threshold` (3) |
+| AC-09 | PASS | `test_threshold` (4), `test_four_edits_pass_and_other_sessions_lose_access` |
+| AC-10 | PASS | `test_disabling_rule_only_disables_distance_check`, panel ustawień |
+| AC-11 | PASS | `test_five_newest_history_entries_are_checked`, `test_admin_reset_preserves_history_and_revokes_real_sessions` |
+| AC-12 | PASS | `test_issue_format_hash_deadline_and_no_logged_secret`, panel kont i demo |
+| AC-13 | PASS | `test_expiration_exact_boundary`, `test_consumption_boundary_and_repeat` |
+| AC-14 | PASS | `test_two_connections_can_consume_only_once`, dwa klienty przy logowaniu |
+| AC-15 | PASS | `test_complete_change_flow`, bootstrap czystej kopii i osobista zmiana hasła oraz ponowne logowanie potwierdzone przez użytkowniczkę |
+| AC-16 | PASS | `test_admin_reset_preserves_history_and_revokes_real_sessions`, wyścigi resetu |
+| AC-17 | PASS | `tests/documents/test_access.py::test_matrix_through_http` (Czytelnik) |
+| AC-18 | PASS | macierz własności Pracownika, 403 potwierdzone również w przeglądarce |
+| AC-19 | PASS | macierz Redaktor/Kierownik; publikacja i wycofanie w przeglądarce |
+| AC-20 | PASS | macierz Administratora dla szkiców |
+| AC-21 | PASS | testy limitów/stanu konta, edycja roli w panelu, `test_unblock_never_restores_invalidated_session` |
+| AC-22 | PASS | `tests/accounts/test_models.py`, `test_create_edit_block_delete_and_reset_services` |
+| AC-23 | PASS | `test_logout_requires_post_and_csrf_and_invalidates_server_session` |
+| AC-24 | PASS | `test_full_idle_boundary`, brak odnowienia na granicy |
+| AC-25 | PASS | `test_activity_renews_but_policy_shortening_applies_immediately` |
+| AC-26 | PASS | test skrócenia bezczynności i `test_expiry_policy_downgrades_existing_full_context` |
+| AC-27 | PASS | `test_password_expiry_boundary_in_existing_session`, ścieżka EXPIRED przez HTTP |
+| AC-28 | PASS | modele hashy, `test_credentials_do_not_appear_in_sessions_logs_or_redirects`, raport błędu DEBUG |
+| AC-29 | PASS | `test_document_csrf_author_and_state_are_protected`, CSRF panelu i zmiany hasła |
+| AC-30 | PASS | `test_text_is_escaped_and_authentication_cannot_be_bypassed`, znacznik skryptu w przeglądarce |
+| AC-31 | PASS automatyczny | czysta kopia, nowe środowisko, migracje, ADMIN, demo i 256 testów |
+
+## Korekta SESS-07 — automatyczne opuszczenie wygasłej strony
+
+Data: 2026-10-29. Bez commita.
+
+Zgłoszenie: otwarty pulpit ADMIN pozostawał widoczny po 15 minutach. Dotychczas middleware sprawdzał limit dopiero przy następnym żądaniu. Dodano licznik i bierny GET `/session/status/`, który nie odnawia aktywności. Middleware dopuszcza tę kontrolę również w ograniczonym kontekście, a dla wygasłej sesji zwraca JSON zamiast przekierowania HTML. Odpowiedź ma `no-store` i zawiera wyłącznie stan, zakres i pozostałe sekundy.
+
+Skrypt sprawdza serwer co 30 sekund, przy terminie wygaśnięcia i po powrocie do karty. Przed przekierowaniem uwzględnia aktywność innej karty. Przy utracie połączenia po upływie znanego terminu ukrywa treść do ponownego potwierdzenia stanu. Serwer nadal egzekwuje limit bez JavaScript. Zaktualizowano specyfikację SESS-07, plan, T015 i README.
+
+Weryfikacja:
+
+- Pełny pytest: **265 passed in 47.53s**. Dziewięć nowych przypadków w `tests/security/test_session_status.py`: sesja ADMIN i dokładna granica 15 minut mimo wielokrotnego odpytywania, aktywność drugiej karty, skrócenie polityki, wygaśnięcie hasła, ograniczone konteksty INITIAL/RESET i ich terminy, anonimowy dostęp bez tworzenia sesji, brak cache, metoda GET, włączenie skryptu i nieprawidłowy czas aktywności.
+- Skrypt `static/js/session.js` wykonany w Node z symulowanym DOM/zegarem/fetch: przekierowanie po wygaśnięciu, brak żądań przy samym odliczaniu, odnowienie w innej karcie, ukrycie treści offline i przywrócenie po weryfikacji, przejście do wymaganej zmiany hasła oraz odrzucenie wadliwej odpowiedzi. Lokalny harness: `.tools/check-session-script.cjs` (ignorowany). Nie wykonywano dodatkowej ręcznej próby przeglądarkowej.
+- Ruff, formatowanie 86 plików, `node --check static/js/session.js`, `manage.py check` i `git diff --check`: PASS.

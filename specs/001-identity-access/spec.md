@@ -1,8 +1,8 @@
 # Specyfikacja modułu identyfikacji uwierzytelniania i autoryzacji
 
-Status: propozycja do przeglądu  
-Wersja: 0.2  
-Data: 2026-10-22
+Status: zaimplementowano i odebrano lokalnie
+Wersja: 0.3  
+Data aktualizacji statusu: 2026-10-29
 
 ## 1. Cel projektu
 
@@ -19,7 +19,7 @@ SDD oznacza tutaj Spec-Driven Development. Ta specyfikacja określa zachowanie a
 - Uprawnienia są przyznawane zgodnie z zasadą najmniejszych uprawnień i sprawdzane na serwerze.
 - Mechanizmy kryptograficzne i sesje korzystają ze sprawdzonych bibliotek.
 
-Wymagania oznaczone identyfikatorami są podstawą przyszłych testów. Dokument ma status propozycji do przeglądu; opisane reguły, wartości domyślne i macierz uprawnień tworzą proponowany zakres pierwszej wersji aplikacji.
+Wymagania oznaczone identyfikatorami są podstawą testów odbiorczych. Reguły, wartości domyślne i macierz uprawnień określają zakres pierwszej wersji aplikacji. Realizację E1–E7 i wyniki AC-01–AC-31 opisują `tasks.md` oraz `docs/verification.md`; stan modułu obejmuje również korektę SESS-07 z 2026-10-29. Odbiór jest lokalny; nie wykonywano publikacji ani wdrożenia.
 
 ## 3. Zakres
 
@@ -148,7 +148,7 @@ Hasło tymczasowe jest jednorazowym hasłem początkowym lub resetującym nadawa
 - **SESS-04:** na granicy limitu sesja jest już wygasła. Odświeżenie strony lub użycie starego ciasteczka jej nie przywraca.
 - **SESS-05:** każda poprawna zmiana hasła unieważnia wszystkie sesje konta, w tym sesję wykonującą zmianę. Użytkownik wraca do logowania.
 - **SESS-06:** sesje obsługuje sprawdzony mechanizm frameworka. Identyfikator sesji jest zmieniany przy logowaniu, a hasła nie trafiają do danych sesyjnych.
-- **SESS-07:** pozostała otwarta karta może wyświetlać wcześniej pobraną treść po upływie limitu; kolejne żądanie nie otrzyma już chronionych danych. Widoki chronione nie powinny być utrwalane w pamięci podręcznej przeglądarki.
+- **SESS-07:** interfejs pokazuje pozostały czas sesji i po potwierdzeniu jej wygaśnięcia automatycznie przenosi do logowania, również bez kliknięcia użytkownika. Bierna kontrola stanu nie przedłuża aktywności. Aktywność w innej karcie tego samego kontekstu jest uwzględniana przed przekierowaniem. Serwer pozostaje źródłem prawdy i odrzuca wygasłą sesję także bez JavaScript. Przy utracie sieci po upływie znanego terminu interfejs ukrywa chronioną treść do potwierdzenia stanu. Widoki chronione mają zakaz cache.
 
 ### 5.8. Autoryzacja i dokumenty
 

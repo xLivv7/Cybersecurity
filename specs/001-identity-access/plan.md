@@ -1,17 +1,17 @@
 # Plan techniczny modułu identyfikacji uwierzytelniania i autoryzacji
 
-Status: propozycja implementacji  
-Wersja: 0.1  
-Data: 2026-10-22  
-Podstawa: [spec.md](spec.md), wersja 0.2
+Status: zrealizowano; odbiór lokalny zakończony
+Wersja: 0.2  
+Data aktualizacji statusu: 2026-10-29
+Podstawa: [spec.md](spec.md), wersja 0.3
 
 ## 1. Cel i sposób pracy
 
 Zbudujemy edukacyjną aplikację webową do zarządzania kontami, hasłami i dostępem do dokumentów. Plan przekłada zachowanie opisane w specyfikacji na architekturę, model danych, etapy implementacji i sposób weryfikacji.
 
-Pracujemy zgodnie z SDD: `spec.md` określa zachowanie, `plan.md` opisuje rozwiązanie techniczne, a przyszły `tasks.md` będzie zawierał zadania wykonawcze. Jeżeli implementacja wymaga zmiany zachowania, najpierw aktualizujemy specyfikację i odpowiednie kryteria odbioru.
+Pracujemy zgodnie z SDD: `spec.md` określa zachowanie, `plan.md` opisuje rozwiązanie techniczne, a `tasks.md` zawiera zadania wykonawcze i wyniki ich realizacji. Jeżeli implementacja wymaga zmiany zachowania, najpierw aktualizujemy specyfikację i odpowiednie kryteria odbioru.
 
-Ten etap obejmuje przygotowanie planu. Utworzenie aplikacji, instalacja zależności, publikacja repozytorium i wdrożenie są odrębnymi działaniami.
+Etapy E1–E7 zrealizowano i zweryfikowano lokalnie. Plan opisuje istniejącą implementację modułu 1, w tym korektę wygaszania otwartej strony. Publikacja repozytorium i wdrożenie pozostają odrębnymi działaniami.
 
 ## 2. Stos technologiczny
 
@@ -267,7 +267,7 @@ Middleware bezpieczeństwa działa po `SessionMiddleware` i `AuthenticationMiddl
 5. W pełnej sesji sprawdza ważność hasła stałego i w razie potrzeby przełącza dostęp na ograniczony kontekst zmiany hasła.
 6. Dopiero po pomyślnej kontroli aktualizuje aktywność dla widoku aplikacji.
 
-Zasoby statyczne nie przechodzą przez odnowienie aktywności. Nie tworzymy automatycznego odpytywania podtrzymującego sesję. Ewentualny lokalny licznik w interfejsie ma wyłącznie funkcję informacyjną.
+Zasoby statyczne nie przechodzą przez odnowienie aktywności. Bierny GET `/session/status/`, oznaczony `passive_view`, sprawdza stan bez zapisywania nowej aktywności i zwraca jedynie zakres i pozostały czas, bez identyfikatorów lub sekretów. Skrypt na chronionych stronach pokazuje licznik, kontroluje stan w tle co najwyżej co 30 sekund oraz w chwili lokalnego terminu i po powrocie do karty. Potwierdzone wygaśnięcie kieruje do logowania; aktywność innej karty jest uwzględniana przez ponowny odczyt. Brak JavaScript nie wyłącza ochrony serwera. Utrata sieci po znanym terminie ukrywa chronioną treść do ponownej weryfikacji.
 
 Reset, zmiana hasła, blokada, logiczne usunięcie i zmiana roli zwiększają wersję konta. Stare sesje tracą prawo dostępu natychmiast w bazie, a ich kolejne żądanie kończy się usunięciem sesji. Nie skanujemy wszystkich rekordów sesji przy każdej operacji na koncie.
 
@@ -414,4 +414,4 @@ README opisze cel aplikacji, stos, lokalne wymagania, konfigurację, migracje, k
 
 Rezultatem implementacji będzie aplikacja uruchamiana lokalnie, z kontem `ADMIN`, sześcioma kontami demonstracyjnymi, kontrolą cyklu życia haseł, sesjami, dokumentami i pięcioma rolami. Repozytorium będzie zawierało dokumentację, migracje, testy oraz konfigurację CI.
 
-Najbliższy krok po przeglądzie planu to przygotowanie `tasks.md`: rozbicie etapów E1–E7 na zadania z odwołaniami do wymagań i kryteriów odbioru. Implementację rozpoczynamy od E1, w szczególności od własnego modelu użytkownika przed pierwszą migracją.
+E1–E7 i T001–T035 są zrealizowane. Wyniki testów, przeglądu przeglądarki i czystej kopii znajdują się w `docs/verification.md` oraz `docs/final-verification.md`. Użytkowniczka potwierdziła ręczną zmianę hasła i ponowne logowanie. Nowe zmiany pozostają bez commita; publikacja i publiczne wdrożenie są oddzielnymi działaniami.

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Konta — Cybersecurity Identity Access{% endblock %}
+{% block content %}
+<p class="eyebrow">Administracja</p><h1>Konta użytkowników</h1>
+<p><a class="button" href="{% url 'accounts:create' %}">Dodaj konto</a></p>
+<div class="table-wrap"><table><caption>Aktywna lista kont, bez kont usuniętych</caption><thead><tr><th>Login</th><th>Imię i nazwisko</th><th>Rola</th><th>Stan</th><th>Operacje</th></tr></thead><tbody>
+{% for account in accounts %}<tr><td>{{ account.username }}</td><td>{{ account.first_name }} {{ account.last_name }}</td><td>{{ account.get_role_display }}</td><td>{% if account.is_active %}Aktywne{% else %}Zablokowane{% endif %}</td><td class="actions">
+<a href="{% url 'accounts:edit' account.pk %}">Edytuj</a>
+{% if account.login_key != 'admin' %}
+<a href="{% url 'accounts:action' account.pk 'reset' %}">Reset hasła</a>
+{% if account.is_active %}<a href="{% url 'accounts:action' account.pk 'block' %}">Zablokuj</a>{% else %}<a href="{% url 'accounts:action' account.pk 'unblock' %}">Odblokuj</a>{% endif %}
+<a href="{% url 'accounts:action' account.pk 'delete' %}">Usuń</a>{% endif %}</td></tr>
+{% empty %}<tr><td colspan="5">Brak kont do wyświetlenia.</td></tr>{% endfor %}
+</tbody></table></div>{% endblock %}

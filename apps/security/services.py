@@ -231,11 +231,10 @@ class IssuedCredential:
 
 @database_operation
 @sensitive_variables()
-def issue_temporary_credential(user_id):
+def issue_temporary_credential(user_id, *, _prepared=None):
     """Return the secret once; persist only its salted hash, preserving history."""
-    alphabet = string.ascii_letters + string.digits
-    secret = "".join(secrets.choice(alphabet) for _ in range(TEMPORARY_PASSWORD_LENGTH))
-    encoded = make_password(secret)
+    prepared = _prepared if _prepared is not None else prepare_temporary_credential()
+    secret, encoded = prepared.secret, prepared.password_hash
     User = get_user_model()
     with transaction.atomic():
         user = User.objects.get(pk=user_id)
@@ -266,6 +265,20 @@ def issue_temporary_credential(user_id):
     return IssuedCredential(
         credential.pk, user.pk, user.session_version, credential.expires_at, secret
     )
+
+
+@dataclass(frozen=True)
+class PreparedTemporaryCredential:
+    secret: str = field(repr=False)
+    password_hash: str = field(repr=False)
+
+
+@sensitive_variables()
+def prepare_temporary_credential():
+    """Internal preparation lets callers hash before their own transaction."""
+    alphabet = string.ascii_letters + string.digits
+    secret = "".join(secrets.choice(alphabet) for _ in range(TEMPORARY_PASSWORD_LENGTH))
+    return PreparedTemporaryCredential(secret, make_password(secret))
 
 
 @dataclass(frozen=True)

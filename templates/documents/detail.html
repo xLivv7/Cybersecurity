@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% block title %}{{ document.title }} — Dokumenty{% endblock %}
+{% block content %}<p><a href="{% url 'documents:list' %}">← Dokumenty</a></p><span class="badge">{{ document.get_status_display }}</span><h1>{{ document.title }}</h1>
+<p class="muted">Autor: {{ document.author.username }} · Utworzono {{ document.created_at|date:"d.m.Y H:i" }} · Zmieniono {{ document.updated_at|date:"d.m.Y H:i" }}</p>
+<article class="card document-body">{{ document.body|linebreaksbr }}</article>
+<div class="actions">{% if can_edit %}<a class="button secondary" href="{% url 'documents:edit' document.pk %}">Edytuj szkic</a>{% endif %}
+{% if can_publish %}<form method="post" action="{% url 'documents:transition' document.pk 'publish' %}">{% csrf_token %}<button>Opublikuj</button></form>{% endif %}
+{% if can_withdraw %}<form method="post" action="{% url 'documents:transition' document.pk 'withdraw' %}">{% csrf_token %}<button>Wycofaj do szkicu</button></form>{% endif %}</div>{% endblock %}

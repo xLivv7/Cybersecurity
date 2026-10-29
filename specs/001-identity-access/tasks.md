@@ -1,11 +1,11 @@
 # Zadania implementacyjne modułu identyfikacji uwierzytelniania i autoryzacji
 
-Status: w realizacji  
-Wersja: 0.17
+Status: ukończone i zweryfikowane lokalnie; komplet 35/35 zadań
+Wersja: 0.21
 
-Data: 2026-10-28
+Data: 2026-10-29
 
-Podstawa: [spec.md](spec.md), wersja 0.2, oraz [plan.md](plan.md), wersja 0.1
+Podstawa: [spec.md](spec.md), wersja 0.3, oraz [plan.md](plan.md), wersja 0.2
 
 ## 1. Jak korzystać z listy
 
@@ -207,6 +207,8 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 
 ### T015 Middleware bezpieczeństwa i terminy
 
+**Korekta 2026-10-29:** uzupełnienie SESS-07 o widoczny licznik, bierną kontrolę stanu i automatyczne opuszczenie wygasłego widoku, także przy braku kliknięcia. Kontrole w tle nie odnawiają aktywności; serwer jest źródłem prawdy. Wyniki w `docs/verification.md`.
+
 - [x] Sprawdzać aktualny stan konta, wersję sesji, bezczynność i ważność haseł.
 
 **Zakres:** middleware umieścić po obsłudze sesji i uwierzytelniania Django. Pobierać aktualne ustawienia; kontrolować termin przed odnowieniem aktywności. Obsłużyć granicę `teraz >= termin`, wartość `0` ważności hasła i wcześniejszy z terminów ograniczonej sesji. Pełną sesję z wygasłym hasłem przełączać na ograniczony dostęp. Nie przedłużać sesji żądaniami zasobów statycznych lub automatycznym odpytywaniem.
@@ -239,7 +241,7 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 
 ### T017 Inicjalizacja i odzyskiwanie konta ADMIN
 
-- [ ] Dodać komendy `init_admin` i `recover_admin`.
+- [x] Dodać komendy `init_admin` i `recover_admin`.
 
 **Zakres:** inicjalizacja pobiera hasło dwukrotnie przez ukryty prompt, waliduje je, zapisuje hash w trybie `INITIAL` i wymusza zmianę. Nie nadpisuje istniejącego konta. Odzyskiwanie wymaga lokalnego potwierdzenia, korzysta z serwisu resetu i pokazuje nowy sekret raz w terminalu. Nie przyjmuje hasła jako argumentu polecenia.
 
@@ -248,9 +250,11 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 **Kryteria:** AC-03, AC-15, AC-16, AC-22.  
 **Gotowe, gdy:** testy komend sprawdzają inicjalizację, ponowne wykonanie i odzyskiwanie, a pierwsze logowanie `ADMIN` nie omija wymuszonej zmiany hasła.
 
+**Wykonano 2026-10-28:** implementacja i weryfikacja w bieżących zmianach roboczych, bez commita. Dowody i wyniki: [odbiór lokalnej wersji](../../docs/final-verification.md).
+
 ### T018 Serwisy zarządzania kontami
 
-- [ ] Dodać tworzenie, edycję, blokadę, odblokowanie i logiczne usunięcie konta.
+- [x] Dodać tworzenie, edycję, blokadę, odblokowanie i logiczne usunięcie konta.
 
 **Zakres:** tworzenie wydaje hasło tymczasowe; zmiana roli, blokada i usunięcie zwiększają wersję sesji. Zachować login po utworzeniu i po usunięciu. Wykluczyć usunięte konta z aktywnej listy. Chronić `ADMIN` także przy bezpośrednim wywołaniu serwisu. Odblokowanie nie reaktywuje starych sesji.
 
@@ -259,9 +263,11 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 **Kryteria:** AC-12, AC-21, AC-22.  
 **Gotowe, gdy:** testy serwisów oraz kilku sesji potwierdzają skutki zmian, zachowanie zarezerwowanego loginu i ochronę konta `ADMIN`.
 
+**Wykonano 2026-10-28:** implementacja i weryfikacja w bieżących zmianach roboczych, bez commita. Dowody i wyniki: [odbiór lokalnej wersji](../../docs/final-verification.md).
+
 ### T019 Lista kont i formularze administracyjne
 
-- [ ] Zbudować panel listy, tworzenia i edycji kont.
+- [x] Zbudować panel listy, tworzenia i edycji kont.
 
 **Zakres:** widoki dopuszczają wyłącznie Administratora. Lista pokazuje login, imię, nazwisko, rolę i stan, bez hashy. Formularze mają jawne listy pól; nie przyjmują klientowskich wartości wersji sesji, hashy, uprawnień frameworka ani niedozwolonej roli.
 
@@ -270,9 +276,11 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 **Kryteria:** AC-12, AC-21, AC-22, AC-28.  
 **Gotowe, gdy:** operacje działają przez formularze, pozostałe role otrzymują 403, a podmienione lub dodatkowe pola nie zmieniają chronionych danych.
 
+**Wykonano 2026-10-28:** implementacja i weryfikacja w bieżących zmianach roboczych, bez commita. Dowody i wyniki: [odbiór lokalnej wersji](../../docs/final-verification.md).
+
 ### T020 Potwierdzanie operacji i jednorazowa prezentacja hasła
 
-- [ ] Podłączyć akcje blokady, odblokowania, usunięcia i resetu.
+- [x] Podłączyć akcje blokady, odblokowania, usunięcia i resetu.
 
 **Zakres:** stosować POST z CSRF i czytelne potwierdzenie dotyczące konkretnego konta. Po utworzeniu lub resecie pokazać wygenerowane hasło jednorazowo w odpowiedzi bez cache; nie używać przechowywania sekretu w sesji ani systemie komunikatów. Wyjaśnić wymóg pierwszej zmiany i ważność 4 godzin.
 
@@ -281,9 +289,11 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 **Kryteria:** AC-12, AC-16, AC-21, AC-22, AC-28, AC-29.  
 **Gotowe, gdy:** odświeżenie listy nie pozwala odczytać wydanego hasła, akcje GET nie zmieniają danych, a brak uprawnień lub CSRF pozostawia konto bez zmian.
 
+**Wykonano 2026-10-28:** implementacja i weryfikacja w bieżących zmianach roboczych, bez commita. Dowody i wyniki: [odbiór lokalnej wersji](../../docs/final-verification.md).
+
 ### T021 Panel ustawień bezpieczeństwa
 
-- [ ] Udostępnić Administratorowi edycję trzech ustawień bezpieczeństwa.
+- [x] Udostępnić Administratorowi edycję trzech ustawień bezpieczeństwa.
 
 **Zakres:** obsłużyć przełącznik Levenshteina, ważność hasła w dniach i bezczynność w minutach. Wyświetlić stałe zasady polityki bez możliwości ich edycji. Pokazać błędy walidacji i zapisać zmiany przez wspólny serwis. Nie modyfikować historycznych dat użytkowników.
 
@@ -292,13 +302,15 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 **Kryteria:** AC-10, AC-26, AC-27, AC-29.  
 **Gotowe, gdy:** uprawnione zmiany działają od następnego żądania, niepoprawne wartości i inne role są odrzucane, a włączenie odległości nie próbuje analizować istniejących hashy.
 
+**Wykonano 2026-10-28:** implementacja i weryfikacja w bieżących zmianach roboczych, bez commita. Dowody i wyniki: [odbiór lokalnej wersji](../../docs/final-verification.md).
+
 **Zakończenie E4:** konto `ADMIN` można zainicjalizować i odzyskać lokalnie; panel realizuje cały cykl zarządzania kontami i ustawieniami.
 
 ## 6. E5 Dokumenty i kontrola dostępu
 
 ### T022 Model dokumentu
 
-- [ ] Dodać model `Document` i jego migrację.
+- [x] Dodać model `Document` i jego migrację.
 
 **Zakres:** tytuł, treść tekstowa, autor, stan `DRAFT` lub `PUBLISHED` oraz daty. Nowe dokumenty są szkicami. Chronić relację autora przed fizycznym usunięciem i nie dodawać operacji usuwania dokumentów.
 
@@ -306,9 +318,11 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 **Wymagania:** DOC-01, ADMIN-06, TECH-02.  
 **Gotowe, gdy:** model i migracja działają, stan nowego dokumentu jest poprawny, a logiczne usunięcie autora zachowuje dokument i relację autorstwa.
 
+**Wykonano 2026-10-28:** implementacja i weryfikacja w bieżących zmianach roboczych, bez commita. Dowody i wyniki: [odbiór lokalnej wersji](../../docs/final-verification.md).
+
 ### T023 Jawne polityki operacji
 
-- [ ] Zaimplementować macierz pięciu ról w `documents/policies.py`.
+- [x] Zaimplementować macierz pięciu ról w `documents/policies.py`.
 
 **Zakres:** sprawdzać rolę, stan dokumentu i własność; domyślnie odmawiać. Nie nadawać Administratorowi dostępu do szkiców. Pracownik operuje na własnych szkicach, Redaktor na wszystkich szkicach, Kierownik także publikuje i wycofuje. Nie używać grup lub flag superużytkownika jako alternatywnego źródła uprawnień.
 
@@ -317,9 +331,11 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 **Kryteria:** AC-17, AC-18, AC-19, AC-20.  
 **Gotowe, gdy:** parametryzowane testy polityk obejmują każdą rolę, stan, własność i dostępną operację, w tym przypadki odmowy.
 
+**Wykonano 2026-10-28:** implementacja i weryfikacja w bieżących zmianach roboczych, bez commita. Dowody i wyniki: [odbiór lokalnej wersji](../../docs/final-verification.md).
+
 ### T024 Listy, szczegóły i odpowiedzi błędów
 
-- [ ] Dodać selektory i widoki odczytu dokumentów.
+- [x] Dodać selektory i widoki odczytu dokumentów.
 
 **Zakres:** filtrować listy po stronie serwera; szczegóły istniejącego niedostępnego dokumentu zwracają 403, a nieistniejącego 404. Anonimowy dostęp kierować do logowania z bezpiecznym lokalnym adresem powrotu. Nie ujawniać tytułu ani treści niedozwolonego szkicu w liście lub odpowiedzi błędu.
 
@@ -328,9 +344,11 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 **Kryteria:** AC-18, AC-20.  
 **Gotowe, gdy:** testy list i bezpośrednich adresów potwierdzają widoczność treści, różnicę 403/404 oraz brak dostępu przez sesję ograniczoną.
 
+**Wykonano 2026-10-28:** implementacja i weryfikacja w bieżących zmianach roboczych, bez commita. Dowody i wyniki: [odbiór lokalnej wersji](../../docs/final-verification.md).
+
 ### T025 Tworzenie, edycja i publikacja
 
-- [ ] Zaimplementować formularze i serwisy zapisu dokumentów.
+- [x] Zaimplementować formularze i serwisy zapisu dokumentów.
 
 **Zakres:** autora ustalać z sesji; nie przyjmować jego identyfikatora ani stanu z formularza szkicu. Weryfikować uprawnienie i aktualny stan także w serwisie. Opublikowanego dokumentu nie można edytować przed wycofaniem. Publikacja i wycofanie są osobnymi operacjami POST dostępnymi Kierownikowi.
 
@@ -339,9 +357,11 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 **Kryteria:** AC-17, AC-18, AC-19, AC-20, AC-29, AC-30.  
 **Gotowe, gdy:** dozwolony zapis działa, a podmiana identyfikatora, autora, stanu, metody żądania lub roli nie pozwala zmienić niedostępnych danych.
 
+**Wykonano 2026-10-28:** implementacja i weryfikacja w bieżących zmianach roboczych, bez commita. Dowody i wyniki: [odbiór lokalnej wersji](../../docs/final-verification.md).
+
 ### T026 Integracyjna weryfikacja macierzy ról
 
-- [ ] Przełożyć macierz polityk na parametryzowane żądania HTTP.
+- [x] Przełożyć macierz polityk na parametryzowane żądania HTTP.
 
 **Zakres:** sprawdzić listy, szczegóły, tworzenie, edycję, publikację i wycofanie dla wszystkich ról. Dodać przypadki kont zablokowanych i ograniczonych sesji. Potwierdzić, że usunięcie przycisku nie jest jedyną kontrolą operacji, oraz że odpowiedź 403 nie zmienia danych.
 
@@ -350,13 +370,15 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 **Kryteria:** AC-17, AC-18, AC-19, AC-20, AC-21.  
 **Gotowe, gdy:** testy rzeczywistych adresów i metod HTTP pokrywają całą macierz i przechodzą bez omijania middleware lub serwisów.
 
+**Wykonano 2026-10-28:** implementacja i weryfikacja w bieżących zmianach roboczych, bez commita. Dowody i wyniki: [odbiór lokalnej wersji](../../docs/final-verification.md).
+
 **Zakończenie E5:** moduł dokumentów demonstruje wszystkie role i sprawdza dostęp po stronie serwera, również przy bezpośrednich żądaniach.
 
 ## 7. E6 Interfejs i demonstracja
 
 ### T027 Wspólny układ i styl interfejsu
 
-- [ ] Ujednolicić szablony, nawigację i zasoby CSS.
+- [x] Ujednolicić szablony, nawigację i zasoby CSS.
 
 **Zakres:** przygotować wspólny układ, typografię, odstępy, kolory, przyciski, pola i tabele. Pulpit oraz nawigacja pokazują funkcje dostępne danej roli. Obsłużyć szeroki i wąski ekran oraz stany pustych list. W interfejsie używać nazw operacji i konkretnych reguł bezpieczeństwa aplikacji.
 
@@ -364,9 +386,11 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 **Wymagania:** UI-01, UI-02, DOC-02.  
 **Gotowe, gdy:** wszystkie widoki korzystają ze spójnych komponentów, tabele i formularze są czytelne na telefonie, a nawigacja zgadza się z uprawnieniami.
 
+**Wykonano 2026-10-28:** implementacja i weryfikacja w bieżących zmianach roboczych, bez commita. Dowody i wyniki: [odbiór lokalnej wersji](../../docs/final-verification.md).
+
 ### T028 Dostępność, błędy i potwierdzenia
 
-- [ ] Dopracować formularze i strony 403/404.
+- [x] Dopracować formularze i strony 403/404.
 
 **Zakres:** dodać jednoznaczne etykiety, widoczny fokus, obsługę klawiaturą, tekstowe błędy przy polach i opis aktywnej polityki. Komunikaty nie polegają wyłącznie na kolorze. Potwierdzenia wskazują konto i skutek operacji. Zachować ogólny błąd logowania i maskowanie sekretów.
 
@@ -374,9 +398,11 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 **Wymagania:** AUTH-01, AUTH-02, UI-01, UI-02, UI-03, UI-04, UI-05.  
 **Gotowe, gdy:** formularze można obsłużyć klawiaturą, błędy są zrozumiałe i przypisane do pól, a odmowa dostępu nie ujawnia chronionej treści.
 
+**Wykonano 2026-10-28:** implementacja i weryfikacja w bieżących zmianach roboczych, bez commita. Dowody i wyniki: [odbiór lokalnej wersji](../../docs/final-verification.md).
+
 ### T029 Dane demonstracyjne
 
-- [ ] Dodać `seed_demo` i jawną opcję `--reset-passwords`.
+- [x] Dodać `seed_demo` i jawną opcję `--reset-passwords`.
 
 **Zakres:** lokalnie tworzyć 1 Kierownika, 1 Redaktora, 2 Pracowników i 2 Czytelników poza `ADMIN`, a także opublikowany dokument i szkice różnych autorów. Wykorzystywać serwisy kont i haseł, generować poświadczenia przy wykonaniu i pokazywać nowe sekrety raz w terminalu. Ponowne wykonanie nie duplikuje danych i nie zmienia istniejących haseł bez jawnej opcji. Nie modyfikować `ADMIN`.
 
@@ -385,9 +411,13 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 **Kryteria:** AC-12, AC-28, AC-31.  
 **Gotowe, gdy:** testy komendy potwierdzają liczbę i role kont, autorstwo szkiców, powtarzalność wykonania oraz reset wyłącznie przy jawnej opcji.
 
+**Wykonano 2026-10-28:** implementacja i weryfikacja w bieżących zmianach roboczych, bez commita. Dowody i wyniki: [odbiór lokalnej wersji](../../docs/final-verification.md).
+
 ### T030 Przegląd w przeglądarce
 
-- [ ] Sprawdzić kompletne ścieżki na komputerze i wąskim ekranie.
+**Wykonano 2026-10-28:** przegląd przeglądarki na komputerze i 390 × 844, wszystkie role, publikacja, odmowy, klawiatura i tekst skryptu. Użytkowniczka osobiście zmieniła hasło pracownik1 i potwierdziła ponowne logowanie. Szczegóły: [odbiór](../../docs/final-verification.md).
+
+- [x] Sprawdzić kompletne ścieżki na komputerze i wąskim ekranie.
 
 **Zakres:** jako `ADMIN` utworzyć i zresetować konto; jako użytkownik przejść pierwsze logowanie, odrzucenie niepoprawnego hasła i jego poprawną zmianę. Sprawdzić pracę każdej roli, publikację i odmowę dostępu, wylogowanie oraz timeout. Wprowadzić tekst zawierający znacznik skryptu i sprawdzić, że pozostaje tekstem. Zweryfikować klawiaturę i wygląd stron błędów.
 
@@ -402,7 +432,7 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 
 ### T031 Przekrojowa weryfikacja bezpieczeństwa
 
-- [ ] Uzupełnić brakujące testy integracyjne bez powielania istniejących przypadków.
+- [x] Uzupełnić brakujące testy integracyjne bez powielania istniejących przypadków.
 
 **Zakres:** przejrzeć dotychczasowe pokrycie; uzupełnić scenariusze kilku klientów, ochronę CSRF z wymuszoną kontrolą w kliencie testowym, nagłówki cache, escapowanie i brak jawnych sekretów w sesjach oraz logach. Sprawdzić, że reset nie usuwa historii, wyłączenie reguły odległości nie wyłącza innych zasad, a zmiana ustawień dotyczy już zalogowanych kont.
 
@@ -411,9 +441,11 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 **Kryteria:** AC-10, AC-11, AC-16, AC-21, AC-23, AC-26, AC-28, AC-29, AC-30.  
 **Gotowe, gdy:** komplet testów odpowiada kryteriom bez pominięcia kontroli dostępu i konfiguracji rzeczywistego hashera; testy nie wymagają ręcznego przygotowania lokalnej bazy.
 
+**Wykonano 2026-10-28:** implementacja i weryfikacja w bieżących zmianach roboczych, bez commita. Dowody i wyniki: [odbiór lokalnej wersji](../../docs/final-verification.md).
+
 ### T032 Odbiór granic czasu i współbieżności
 
-- [ ] Zweryfikować istniejące testy równoczesnych operacji i terminów w pełnym przepływie.
+- [x] Zweryfikować istniejące testy równoczesnych operacji i terminów w pełnym przepływie.
 
 **Zakres:** potwierdzić jednorazowość przez osobne połączenia plikowej bazy oraz brak dostępu po resecie kolidującym z logowaniem lub zmianą hasła. Przejrzeć testy granic ważności i bezczynności, utraty ograniczonej sesji oraz skutków błędu blokady. Uzupełnić wyłącznie brakujące przypadki.
 
@@ -422,9 +454,11 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 **Kryteria:** AC-13, AC-14, AC-16, AC-24, AC-25, AC-26, AC-27.  
 **Gotowe, gdy:** testy używają kontrolowanego czasu i rzeczywiście odrębnych połączeń, kończą się bez oczekiwania na upływ godzin i wykazują brak częściowych zapisów lub drugiej skutecznej próby użycia sekretu.
 
+**Wykonano 2026-10-28:** implementacja i weryfikacja w bieżących zmianach roboczych, bez commita. Dowody i wyniki: [odbiór lokalnej wersji](../../docs/final-verification.md).
+
 ### T033 Końcowa konfiguracja CI
 
-- [ ] Doprowadzić workflow do uruchamiania wszystkich wymaganych kontroli.
+- [x] Doprowadzić workflow do uruchamiania wszystkich wymaganych kontroli.
 
 **Zakres:** synchronizować zależności z pliku blokady; uruchamiać Ruff, kontrolę Django, brakujących migracji oraz pełny pytest, w tym testy współbieżności. Utrzymać tę samą serię Pythona i ustawienia hashera lokalnie i w CI. Wyniki nie mogą zawierać prawdziwych sekretów.
 
@@ -433,9 +467,11 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 **Kryteria:** AC-28, AC-31.  
 **Gotowe, gdy:** te same kontrole przechodzą lokalnie, workflow nie pomija żadnej wymaganej grupy testów i jest gotowy do wykonania po publikacji repozytorium. Wynik zdalny sprawdzimy dopiero po osobno zleconej publikacji.
 
+**Wykonano 2026-10-28:** implementacja i weryfikacja w bieżących zmianach roboczych, bez commita. Dowody i wyniki: [odbiór lokalnej wersji](../../docs/final-verification.md).
+
 ### T034 README i decyzje techniczne
 
-- [ ] Opisać uruchomienie, testy i najważniejsze rozwiązania bezpieczeństwa.
+- [x] Opisać uruchomienie, testy i najważniejsze rozwiązania bezpieczeństwa.
 
 **Zakres:** README zawiera cel, stos, konfigurację środowiska, migracje, inicjalizację i odzyskiwanie `ADMIN`, dane demonstracyjne, role, testy oraz odnośniki do dokumentów SDD. W `docs/decisions/` opisać ograniczone sesje, unieważnianie przez wersję konta, historię po resecie i brak dziedziczenia uprawnień superużytkownika. Zaznaczyć, że dane demonstracyjne są lokalne, a utrata ograniczonej sesji po użyciu hasła tymczasowego wymaga resetu.
 
@@ -444,9 +480,13 @@ Zadanie oznaczamy jako wykonane po implementacji i weryfikacji, z odnotowaniem w
 **Kryteria:** AC-31.  
 **Gotowe, gdy:** instrukcja opisuje rzeczywiste, sprawdzone polecenia i nie wymaga wartości zaszytych w kodzie; specyfikacja, plan i zadania opisują aktualny stan projektu.
 
+**Wykonano 2026-10-28:** implementacja i weryfikacja w bieżących zmianach roboczych, bez commita. Dowody i wyniki: [odbiór lokalnej wersji](../../docs/final-verification.md).
+
 ### T035 Odtworzenie środowiska i zamknięcie odbioru
 
-- [ ] Wykonać odbiór pierwszej wersji z czystej kopii projektu.
+**Wykonano 2026-10-28:** odbiór czystej kopii bieżących źródeł i pełnych 256 testów przeszedł; ręczny T030 również potwierdzono. Szczegóły AC-01–AC-31: [odbiór](../../docs/final-verification.md).
+
+- [x] Wykonać odbiór pierwszej wersji z czystej kopii projektu.
 
 **Zakres:** zgodnie z README odtworzyć środowisko, utworzyć pustą bazę, zastosować migracje, zainicjalizować `ADMIN`, przygotować demonstrację i uruchomić kontrole. Przejrzeć pliki przeznaczone do wersjonowania pod kątem sekretów, baz i artefaktów. W `docs/verification.md` zapisać wynik każdego AC-01–AC-31, odwołanie do testu lub procedury ręcznej oraz końcowe ograniczenia. Przy braku wyniku pozostawić dane kryterium nieodebrane.
 
@@ -497,4 +537,8 @@ Poniższa mapa wskazuje zadania odpowiedzialne za implementację i weryfikację 
 
 ## 10. Kolejny krok
 
-E1–E3 są ukończone. Kolejnym zadaniem jest T017 w etapie E4: lokalne komendy inicjalizacji i odzyskiwania ADMIN. Kolejne etapy zaczynamy po spełnieniu warunku zakończenia poprzedniego etapu.
+Wszystkie etapy E1–E7 i zadania T001–T035 są ukończone. Bieżące źródła przeszły 256 testów, odtworzenie środowiska, migracje, inicjalizację, demonstrację i przegląd interfejsu. Użytkowniczka potwierdziła zmianę hasła i ponowne logowanie. Nowe zmiany pozostają bez commita; publikacja i publiczne wdrożenie są osobnymi czynnościami.
+
+## Zamknięcie modułu 1 — 2026-10-29
+
+Wszystkie zadania T001–T035 są zakończone. Po korekcie SESS-07 pełny zestaw obejmuje 265 przechodzących testów. Zapis bieżącej implementacji E4–E7 i poprawki sesji w repozytorium zamyka zaległe wersjonowanie. Wcześniejsze wzmianki „bez commita” opisują stan w dniu wykonania poszczególnych zadań. Wyniki pozostają w `docs/verification.md` i `docs/final-verification.md`; nie wykonywano pushu ani wdrożenia.

@@ -127,12 +127,18 @@ def get_access(request):
         return None
 
 
-def access_required(scope):
+def access_required(scope, *, return_to=False):
     def decorate(view):
         @wraps(view)
         def guarded(request, *args, **kwargs):
             access = get_access(request)
             if access is None:
+                if return_to:
+                    from urllib.parse import urlencode
+
+                    return redirect(
+                        "/login/?" + urlencode({"next": request.get_full_path()})
+                    )
                 return redirect("accounts:login")
             user, data = access
             if data["scope"] != scope:
