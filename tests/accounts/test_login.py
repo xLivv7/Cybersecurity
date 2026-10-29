@@ -63,8 +63,8 @@ def test_refusals_share_one_message(state, user_factory, clock, client):
                 **{field: clock.now()}
             )
     form = LoginForm({"login": login, "password": password})
-    assert not form.is_valid()
-    assert form.non_field_errors() == [LOGIN_ERROR]
+    # Field validation is separate from the atomic login/limit service.
+    assert form.is_valid()
     assert authenticate(username=login, password=password) is None
     response = client.post("/login/", {"login": login, "password": password})
     assert LOGIN_ERROR in response.text

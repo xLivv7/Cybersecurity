@@ -8,7 +8,8 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.debug import sensitive_post_parameters, sensitive_variables
 from django.views.decorators.http import require_http_methods, require_POST
 
-from apps.security.sessions import access_required, get_access, start_session
+from apps.security.login_limits import attempt_login
+from apps.security.sessions import access_required, get_access
 
 from .backends import LOGIN_ERROR
 from .forms import LoginForm
@@ -26,10 +27,17 @@ def login_view(request):
     form = LoginForm(request.POST if request.method == "POST" else None)
     if request.method == "POST" and form.is_valid():
         try:
-            context = start_session(request, form.result, form.cleaned_data["password"])
+            attempt = attempt_login(
+                request, form.cleaned_data["login"], form.cleaned_data["password"]
+            )
         except ValidationError:
+            auth.logout(request)
             form.add_error(None, LOGIN_ERROR)
         else:
+            context = attempt.context
+            if context is None:
+                form.add_error(None, LOGIN_ERROR)
+                return render(request, "accounts/login.html", {"form": form})
             next_url = request.GET.get("next", "")
             if (
                 context["scope"] == "full"

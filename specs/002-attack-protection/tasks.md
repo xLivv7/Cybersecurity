@@ -1,7 +1,7 @@
 # Zadania modułu ochrony przed botami i wyciekiem danych
 
-Status: E8 w realizacji; 1/20 wykonanych, w tym 1/18 obowiązkowych i 0/2 dodatkowych
-Wersja: 0.2
+Status: E8 w realizacji; 2/20 wykonanych, w tym 2/18 obowiązkowych i 0/2 dodatkowych
+Wersja: 0.3
 Data: 2026-10-29
 Podstawa: [specyfikacja 0.1](spec.md), [plan 0.1](plan.md), [źródło wymagań](source.md).
 
@@ -23,13 +23,15 @@ Kontynuujemy numerację po T035. Pole wyboru oznacza wykonanie i weryfikację, n
 
 ### T037 Atomowy limit prób dla konta
 
-- [ ] Zaimplementować licznik i 15-minutową blokadę w przepływie logowania.
+- [x] Zaimplementować licznik i 15-minutową blokadę w przepływie logowania.
 
 **Zakres:** błędne poświadczenia, próg N, brak przedłużania blokady, poprawne hasło podczas blokady, zerowanie po sukcesie/końcu, istniejące i nieistniejące loginy. Odczyt polityki przy finalizacji i kontrola snapshotu poświadczeń; nie omijać ograniczonych kontekstów ani jednorazowości hasła. Zmiana progu działa przy następnej próbie.
 
 **Zależności:** T036.
 **Wymagania:** M2-LOCK-02–03, M2-LOCK-05–06.
 **Gotowe, gdy:** testy granic 899,999…/900/900,001… sekund i równoległych prób potwierdzają limit bez utraty inkrementacji oraz brak utworzenia sesji po ustanowieniu blokady.
+
+**Wykonano 2026-10-29:** `attempt_login()` rozstrzyga limity i ustanawia kontekst we wspólnej transakcji po weryfikacji hasła poza blokadą zapisu. Przesunięto rozdzielenie walidacji pól od uwierzytelniania z części T040, ponieważ jest potrzebne do atomowego limitu. Zmiana poświadczenia lub równoległa blokada odrzuca wcześniejszy sukces; tymczasowe hasło nadal można zużyć tylko raz. Dowody: `tests/security/test_login_limits.py` i `docs/verification.md`.
 
 ### T038 Panel progu i komunikat czasu blokady
 
@@ -225,4 +227,4 @@ Ten etap jest opcjonalny zgodnie z załącznikiem. Jego pominięcie nie blokuje 
 
 ## Najbliższy krok
 
-Kontynuować od **T037**. Klucze dostawców, zewnętrzne tokeny, potwierdzenia poczty i dane autora będą potrzebne przed odpowiednimi odbiorami; nie blokują przygotowania modeli i testów. Ten dokument jest planem dalszej pracy, a nie poleceniem natychmiastowej implementacji wszystkich zadań.
+Kontynuować od **T038**. Klucze dostawców, zewnętrzne tokeny, potwierdzenia poczty i dane autora będą potrzebne przed odpowiednimi odbiorami; nie blokują przygotowania modeli i testów. Ten dokument jest planem dalszej pracy, a nie poleceniem natychmiastowej implementacji wszystkich zadań.

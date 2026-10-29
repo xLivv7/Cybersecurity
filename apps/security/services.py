@@ -316,6 +316,14 @@ def consume_temporary_credential(credential_id, secret):
         raise ValidationError("Login lub hasło niepoprawne", code="invalid_credentials")
     if not _eligible_temporary_credential(credential, timezone.now()):
         raise SecurityConflict()
+    return _consume_verified_temporary_credential(credential)
+
+
+@database_operation
+@sensitive_variables()
+def _consume_verified_temporary_credential(credential):
+    """Internal finalization of a verified snapshot, without hashing under a lock."""
+    credential_id = credential.pk
     with transaction.atomic():
         current = TemporaryCredential.objects.select_related("user").get(
             pk=credential_id

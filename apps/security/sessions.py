@@ -15,13 +15,18 @@ from apps.accounts.backends import BACKEND_PATH, password_expired
 
 from .models import TemporaryCredential
 from .selectors import get_security_settings
-from .services import ChangeReason, SecurityConflict, consume_temporary_credential
+from .services import (
+    ChangeReason,
+    SecurityConflict,
+    _consume_verified_temporary_credential,
+    consume_temporary_credential,
+)
 
 CONTEXT_KEY = "security_context"
 
 
 @sensitive_variables()
-def start_session(request, result, password):
+def start_session(request, result, password, *, _verified_credential=None):
     User = get_user_model()
     user = User.objects.get(pk=result.user_id)
     if (
@@ -33,7 +38,12 @@ def start_session(request, result, password):
     now = timezone.now()
     reason, expires_at = result.reason, None
     if reason == ChangeReason.RESET:
-        consumed = consume_temporary_credential(result.credential_id, password)
+        if _verified_credential is None:
+            consumed = consume_temporary_credential(result.credential_id, password)
+        else:
+            if _verified_credential.pk != result.credential_id:
+                raise SecurityConflict()
+            consumed = _consume_verified_temporary_credential(_verified_credential)
         if consumed.user_id != user.pk or consumed.version != result.version:
             raise SecurityConflict()
         expires_at = consumed.expires_at.isoformat()

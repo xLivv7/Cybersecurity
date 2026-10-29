@@ -100,8 +100,13 @@ def test_migration_preserves_accounts_credentials_documents_and_policy(user_fact
         executor.migrate(before)
         historical = executor.loader.project_state(before).apps
         Policy = historical.get_model("security", "SecuritySettings")
-        Policy.objects.filter(pk=1).update(
-            levenshtein_enabled=False, password_max_age_days=7, idle_timeout_minutes=3
+        Policy.objects.update_or_create(
+            pk=1,
+            defaults={
+                "levenshtein_enabled": False,
+                "password_max_age_days": 7,
+                "idle_timeout_minutes": 3,
+            },
         )
         previous = Policy.objects.values().get(pk=1)
         MigrationExecutor(connection).migrate(latest)

@@ -1,6 +1,6 @@
 # Plan techniczny ochrony przed botami i wyciekiem danych
 
-Status: E8 w realizacji; T036 ukończone, następne T037
+Status: E8 w realizacji; T036–T037 ukończone, następne T038
 Wersja: 0.1
 Data: 2026-10-29
 Podstawa: [specyfikacja 0.1](spec.md), [decyzje i źródła](source.md).
@@ -9,7 +9,7 @@ Podstawa: [specyfikacja 0.1](spec.md), [decyzje i źródła](source.md).
 
 Moduł 1 ma 35 zakończonych zadań, migracje kont, polityki bezpieczeństwa i dokumentów oraz 265 przechodzących testów. Commit bazowy: `1cf5075`. Pozostawiamy Django 5.2, Python 3.13, SQLite z transakcjami IMMEDIATE, Argon2id, szablony i istniejące reguły sesji. Nie tworzymy drugiej aplikacji ani nowego systemu uwierzytelniania.
 
-Obecnie `LoginForm.clean()` wywołuje `authenticate_login()`. Rozdzielimy walidację pól od uwierzytelnienia, żeby CAPTCHA i honeypot poprzedzały weryfikację hasła. Usługi `start_session()` oraz zmiany hasła zachowują sprawdzanie aktualnego stanu konta i wersji sesji.
+W T037 rozdzielono walidację pól `LoginForm` od uwierzytelnienia. Usługa `attempt_login()` wykonuje weryfikację hasła poza blokadą zapisu, po czym atomowo sprawdza blokadę i snapshot poświadczeń oraz tworzy kontekst. Było to potrzebne do poprawnego wdrożenia limitu już w E8; T040 doda do istniejącej kolejności bramki CAPTCHA i honeypot. Usługi `start_session()` oraz zmiany hasła zachowują sprawdzanie aktualnego stanu konta i wersji sesji.
 
 Plan jest realizowany od T036. Usługi zewnętrzne pozostają zakresem późniejszych etapów.
 
@@ -38,7 +38,7 @@ Rozszerzamy istniejący singleton `SecuritySettings` o `login_failure_limit`, do
 
 ### Liczniki
 
-`LoginAttemptState` identyfikuje klucz loginu po tej samej normalizacji co model użytkownika. Klucz może być zapisany jako HMAC z osobnym przeznaczeniem, aby nie przechowywać surowych nieistniejących loginów. Unikalność klucza musi być wymuszona w bazie; nie polegamy na pamięci procesu. Pola: licznik błędów, `blocked_until`, ostatnia aktualizacja, wersja stanu. Stan obejmuje również nieistniejący login i nie jest flagą administracyjnej blokady konta.
+`LoginAttemptState` identyfikuje klucz loginu po tej samej normalizacji co model użytkownika. Klucz jest zapisany jako HMAC-SHA256 z osobnym przeznaczeniem, aby nie przechowywać surowych nieistniejących loginów. Korzysta z klucza Django; jego rotacja resetuje korelację liczników i musi być uwzględniona w procedurze operatora. Unikalność klucza musi być wymuszona w bazie; nie polegamy na pamięci procesu. Pola: licznik błędów, `blocked_until`, ostatnia aktualizacja, wersja stanu. Stan obejmuje również nieistniejący login i nie jest flagą administracyjnej blokady konta.
 
 Próba po końcu blokady najpierw zeruje licznik i termin. Próba w czasie blokady niczego nie przedłuża. Poprawne logowanie zeruje licznik konta; odrzucona CAPTCHA nie zapisuje błędu poświadczeń. Skrócenie progu obowiązuje przy następnym rozstrzygnięciu próby. W dodatkowym limicie IP kluczem jest niezależny, kanoniczny adres, a sukces nie kasuje jego licznika.
 

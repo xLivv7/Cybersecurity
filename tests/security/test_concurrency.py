@@ -1,7 +1,6 @@
 """Independent SQLite file connections exercise real races and lock failures."""
 
 from concurrent.futures import ThreadPoolExecutor
-from copy import deepcopy
 from datetime import timedelta
 from threading import Barrier, Event, current_thread
 
@@ -9,9 +8,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.core.exceptions import ValidationError
-from django.core.management import call_command
 from django.db import connections, transaction
-from django.db.backends.sqlite3.base import DatabaseWrapper
 from django.db.models import QuerySet
 
 from apps.security import services
@@ -26,26 +23,6 @@ from apps.security.services import (
     verify_permanent_password,
     verify_temporary_credential,
 )
-
-
-@pytest.fixture
-def file_database(transactional_db, tmp_path):
-    """Keep pytest's original in-memory wrapper open and restore it afterwards."""
-    original_connection = connections["default"]
-    original_config = connections.databases["default"]
-    configuration = deepcopy(original_connection.settings_dict)
-    configuration["NAME"] = str(tmp_path / "concurrency.sqlite3")
-    configuration["OPTIONS"]["timeout"] = 0.2
-    file_connection = DatabaseWrapper(configuration, alias="default")
-    connections.databases["default"] = configuration
-    connections["default"] = file_connection
-    try:
-        call_command("migrate", verbosity=0, interactive=False)
-        yield configuration["NAME"]
-    finally:
-        file_connection.close()
-        connections["default"] = original_connection
-        connections.databases["default"] = original_config
 
 
 def worker(operation):

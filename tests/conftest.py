@@ -1,9 +1,13 @@
 """Shared account factories and a clock for tests using django.utils.timezone."""
 
+from copy import deepcopy
 from datetime import UTC, datetime, timedelta
 from itertools import count
 
 import pytest
+from django.core.management import call_command
+from django.db import connections
+from django.db.backends.sqlite3.base import DatabaseWrapper
 from django.utils import timezone
 
 
@@ -62,3 +66,23 @@ def admin_factory(user_factory, django_user_model):
 @pytest.fixture
 def admin(admin_factory):
     return admin_factory()
+
+
+@pytest.fixture
+def file_database(transactional_db, tmp_path):
+    """Keep pytest's original in-memory wrapper open and restore it afterwards."""
+    original_connection = connections["default"]
+    original_config = connections.databases["default"]
+    configuration = deepcopy(original_connection.settings_dict)
+    configuration["NAME"] = str(tmp_path / "concurrency.sqlite3")
+    configuration["OPTIONS"]["timeout"] = 0.2
+    file_connection = DatabaseWrapper(configuration, alias="default")
+    connections.databases["default"] = configuration
+    connections["default"] = file_connection
+    try:
+        call_command("migrate", verbosity=0, interactive=False)
+        yield configuration["NAME"]
+    finally:
+        file_connection.close()
+        connections["default"] = original_connection
+        connections.databases["default"] = original_config
