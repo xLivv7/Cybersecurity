@@ -3,6 +3,7 @@
 from django.core.exceptions import ImproperlyConfigured
 
 from ._env import hosts_from_environment, secret_key_from_environment
+from ._turnstile import configuration
 from .base import *  # noqa: F403
 
 SECRET_KEY = secret_key_from_environment()
@@ -21,3 +22,6 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = False
 SECURE_HSTS_PRELOAD = False
 
 # Trust proxy headers only after the actual deployment topology is configured.
+TURNSTILE_SITE_KEY, TURNSTILE_SECRET_KEY, TURNSTILE_ALLOWED_HOSTNAMES = configuration(
+    production=True
+)

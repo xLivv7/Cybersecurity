@@ -76,6 +76,15 @@ IDENTITY_VALIDATOR = RegexValidator(
 )
 
 
+class CaptchaRedemption(models.Model):
+    """Only the fingerprint of an accepted token; never the token itself."""
+
+    token_digest = models.CharField(
+        max_length=64, unique=True, validators=[IDENTITY_VALIDATOR]
+    )
+    expires_at = models.DateTimeField(db_index=True)
+
+
 class LoginAttemptState(models.Model):
     """Shared login counter; never stores submitted logins or passwords."""
 

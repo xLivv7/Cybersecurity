@@ -1,9 +1,9 @@
 # Zadania modułu ochrony przed botami i wyciekiem danych
 
-Status: E8 ukończone; 3/20 wykonanych, w tym 3/18 obowiązkowych i 0/2 dodatkowych
-Wersja: 0.4
+Status: E9 w realizacji; 4/20 wykonanych, w tym 4/18 obowiązkowych i 0/2 dodatkowych
+Wersja: 0.5
 Data: 2026-10-29
-Podstawa: [specyfikacja 0.1](spec.md), [plan 0.1](plan.md), [źródło wymagań](source.md).
+Podstawa: [specyfikacja 0.2](spec.md), [plan 0.2](plan.md), [źródło wymagań](source.md).
 
 Kontynuujemy numerację po T035. Pole wyboru oznacza wykonanie i weryfikację, nie samo utworzenie planu. Po zadaniu zapisujemy dowód w `docs/verification.md` i logiczny commit. Nie zaznaczamy odbioru zewnętrznego po samym teście mocka. Jeżeli zmienia się zachowanie, najpierw aktualizujemy specyfikację. Ścieżki poniżej są docelowe.
 
@@ -51,13 +51,15 @@ Kontynuujemy numerację po T035. Pole wyboru oznacza wykonanie i weryfikację, n
 
 ### T039 Adapter Turnstile i konfiguracja środowisk
 
-- [ ] Dodać wspólną serwerową walidację tokenu.
+- [x] Dodać wspólną serwerową walidację tokenu.
 
 **Zakres:** Siteverify z timeoutem, kontrola odpowiedzi, hosta i akcji, odmowa przy błędach sieci i konfiguracji. Klucze z otoczenia, opisane puste wartości w `.env.example`, oddzielenie kluczy testowych. Zakaz testowych kluczy/obejść w publicznej konfiguracji. Rozszerzyć filtr raportowania błędów o nowe sekrety.
 
 **Zależności:** T038.
 **Wymagania:** M2-CAP-02–03, M2-CAP-05, M2-CAN-05.
 **Gotowe, gdy:** testy adaptera bez Internetu obejmują sukces, fałszywy/zużyty/wygasły token, błędny host/akcję, wadliwy JSON, timeout i HTTP 5xx; żaden sekret nie trafia do raportu błędu.
+
+**Wykonano 2026-10-29:** implementacja i odpowiednie testy zakończone; wyniki i ograniczenia odbioru zapisano w `docs/verification.md`.
 
 ### T040 CAPTCHA i pole-pułapka w logowaniu
 
@@ -231,4 +233,4 @@ Ten etap jest opcjonalny zgodnie z załącznikiem. Jego pominięcie nie blokuje 
 
 ## Najbliższy krok
 
-Następne zadanie to **T039** w E9. Nie rozpoczynano go w ramach realizacji E8. Klucze dostawców, zewnętrzne tokeny, potwierdzenia poczty i dane autora będą potrzebne przed odpowiednimi odbiorami; nie blokują przygotowania modeli i testów. Ten dokument jest planem dalszej pracy, a nie poleceniem natychmiastowej implementacji wszystkich zadań.
+Następne zadanie to **T040** w E9. Klucze dostawców, zewnętrzne tokeny, potwierdzenia poczty i dane autora będą potrzebne przed odpowiednimi odbiorami; nie blokują przygotowania modeli i testów. Ten dokument jest planem dalszej pracy, a nie poleceniem natychmiastowej implementacji wszystkich zadań.

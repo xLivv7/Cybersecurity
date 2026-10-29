@@ -1,7 +1,7 @@
 # Specyfikacja ochrony przed botami i wyciekiem danych
 
-Status: E8 ukończone lokalnie; pozostałe etapy nierozpoczęte
-Wersja: 0.1
+Status: E9 w realizacji; ukończono T039, następne T040
+Wersja: 0.2
 Data: 2026-10-29
 Podstawa: [załącznik i decyzje](source.md), aplikacja modułu 1 w commicie `1cf5075`.
 
@@ -26,7 +26,7 @@ Zakres podstawowy obejmuje konfigurowalny próg błędnych logowań, czasową bl
 
 - **M2-CAP-01:** logowanie wymaga poprawnego tokenu Cloudflare Turnstile. Nie wdrażamy własnego wariantu CAPTCHA; załącznik pozwala pominąć go po wybraniu dostawcy.
 - **M2-CAP-02:** serwer weryfikuje token przez Siteverify przed sprawdzeniem hasła. Sam widget, obecność pola lub komunikat JavaScript nie wystarczają. Token jest jednorazowy, ważny najwyżej 300 sekund i przeznaczony dla oczekiwanego hosta i akcji formularza.
-- **M2-CAP-03:** brak tokenu, fałszywy token, ponowne użycie, wygaśnięcie, błędny host/akcja i awaria dostawcy oznaczają odmowę operacji. Żadne z tych zdarzeń nie zmienia hasła, historii, wersji sesji ani stanu jednorazowego hasła. Sukces walidacji nie może być użyty do kolejnej operacji.
+- **M2-CAP-03:** brak tokenu, fałszywy token, ponowne użycie, wygaśnięcie, błędny host/akcja i awaria dostawcy oznaczają odmowę operacji. Żadne z tych zdarzeń nie zmienia hasła, historii, wersji sesji ani stanu jednorazowego hasła. Sukces walidacji nie może być użyty do kolejnej operacji; serwer atomowo rejestruje skrót zaakceptowanego tokenu do jego wygaśnięcia, także przy równoległych żądaniach.
 - **M2-CAP-04:** przy każdym ponowieniu formularza po błędzie użytkownik otrzymuje możliwość nowego wyzwania. Hasło nie wraca do HTML. Widget ma czytelną obsługę oczekiwania, wygaśnięcia i błędu, dostępny komunikat oraz obsługę klawiatury.
 - **M2-CAP-05:** klucz sekretny pozostaje na serwerze; testowe klucze i atrapy są oddzielone od rzeczywistej konfiguracji. Brak konfiguracji nie może powodować cichego pominięcia ochrony. Publiczna konfiguracja odrzuca klucze testowe i wyłączoną weryfikację.
 - **M2-CAP-06:** wymaganie obejmuje `/password/change/` i `/password/required/`, w tym INITIAL, RESET i EXPIRED. Bez poprawnego tokenu formularz nie uruchamia usługi zmiany hasła. Pierwsza zmiana hasła ADMIN i odzyskiwanie konta mają opisaną ścieżkę konfiguracji; komendy operatora pozostają bez widgetu.

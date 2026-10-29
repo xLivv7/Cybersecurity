@@ -7,6 +7,9 @@ from apps.security.constants import MIN_PASSWORD_LENGTH
 BASE_DIR = Path(__file__).resolve().parents[2]
 
 DEBUG = False
+TURNSTILE_SITE_KEY = ""
+TURNSTILE_SECRET_KEY = ""
+TURNSTILE_ALLOWED_HOSTNAMES = []
 ALLOW_DEMO_DATA = False
 ALLOWED_HOSTS = []
 

@@ -3,7 +3,14 @@
 from django.conf import settings
 from django.views.debug import SafeExceptionReporterFilter
 
-SECRET_FIELDS = ("password", "old_secret", "new_secret", "confirmation")
+SECRET_FIELDS = (
+    "password",
+    "old_secret",
+    "new_secret",
+    "confirmation",
+    "cf-turnstile-response",
+    "website",
+)
 
 
 class SecurityExceptionReporterFilter(SafeExceptionReporterFilter):
@@ -11,6 +18,8 @@ class SecurityExceptionReporterFilter(SafeExceptionReporterFilter):
         return True
 
     def cleanse_setting(self, key, value):
+        if key == "CANARY_HTTP_TOKEN_URL":
+            return self.cleansed_substitute
         if key in (settings.SESSION_COOKIE_NAME, settings.CSRF_COOKIE_NAME):
             return self.cleansed_substitute
         return super().cleanse_setting(key, value)

@@ -1,7 +1,7 @@
 # Plan techniczny ochrony przed botami i wyciekiem danych
 
-Status: E8 ukończone; następne T039 w E9
-Wersja: 0.1
+Status: E9 w realizacji; ukończono T039, następne T040
+Wersja: 0.2
 Data: 2026-10-29
 Podstawa: [specyfikacja 0.1](spec.md), [decyzje i źródła](source.md).
 
@@ -66,7 +66,7 @@ Kosztowna weryfikacja hasha ma być poza blokadą zapisu, a jej wynik powiązany
 
 Jeden adapter otrzymuje token i oczekiwaną akcję. Ogranicza wielkość wejścia, wywołuje HTTPS Siteverify z kluczem serwera i krótkim timeoutem (planowane 5 sekund), sprawdza `success`, dozwolony `hostname`, właściwe `action` i strukturę odpowiedzi. Akcje: `login`, `password_change`, `password_required`. Nie przyjmuje adresu dostawcy z HTTP ani nie zapisuje pełnej odpowiedzi/tokenów do logów.
 
-Dostawca egzekwuje termin 300 sekund i jednorazowość; lokalny kod nie buforuje udanej walidacji do późniejszego użycia. Równoległe ponowienie tego samego tokenu nie może dać dwóch autoryzacji. Timeout oznacza odmowę i nowy token; nie wykonujemy bezwarunkowego retry zużytego tokenu. Testy kontraktu obejmują brak/powtórzenie tokenu, niepoprawne typy JSON, HTTP 5xx i utratę sieci.
+Dostawca egzekwuje termin 300 sekund i jednorazowość. Dodatkowo `CaptchaRedemption` zapisuje wyłącznie SHA-256 zaakceptowanego tokenu i jego termin, z unikalnością wymuszoną przez bazę. Atomowy zapis dopuszcza tylko jedną operację nawet przy równoległych odpowiedziach sukcesu. Wygasłe wpisy są czyszczone przy kolejnej udanej walidacji; surowych tokenów ani odpowiedzi sukcesu nie buforujemy do ponownego użycia. Adapter sprawdza też serwerowy `challenge_ts` i dokładną granicę 300 sekund. Równoległe ponowienie tego samego tokenu nie może dać dwóch autoryzacji. Timeout oznacza odmowę i nowy token; nie wykonujemy bezwarunkowego retry zużytego tokenu. Testy kontraktu obejmują brak/powtórzenie tokenu, niepoprawne typy JSON, HTTP 5xx i utratę sieci.
 
 Planowane zmienne środowiskowe: `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`, `TURNSTILE_ALLOWED_HOSTNAMES`, `CANARY_LOGIN_NAME`, `CANARY_HTTP_TOKEN_URL`, `CANARY_ALLOWED_HOSTS`. W `.env.example` umieszczamy puste wartości i opis. URL tokenu traktujemy jak sekret; walidujemy schemat i jawnie dozwolony host operatora, bez przekierowań do innych hostów. Odbiorcę e-mail konfiguruje operator po stronie Canarytokens; aplikacja nie wysyła własnej poczty.
 

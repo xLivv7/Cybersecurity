@@ -48,6 +48,18 @@ def run_settings(environment, code=SNAPSHOT, *, variables=None, bootstrap=""):
     for name in ("DJANGO_SETTINGS_MODULE", "DJANGO_SECRET_KEY", "DJANGO_ALLOWED_HOSTS"):
         env.pop(name, None)
     env["DJANGO_SETTINGS_MODULE"] = f"config.settings.{environment}"
+    for name in (
+        "TURNSTILE_SITE_KEY",
+        "TURNSTILE_SECRET_KEY",
+        "TURNSTILE_ALLOWED_HOSTNAMES",
+    ):
+        env.pop(name, None)
+    if environment == "production":
+        env.update(
+            TURNSTILE_SITE_KEY="configured-site",
+            TURNSTILE_SECRET_KEY="configured-secret",
+            TURNSTILE_ALLOWED_HOSTNAMES="identity.example,www.identity.example",
+        )
     for name, value in (variables or {}).items():
         if value is not None:
             env[name] = value

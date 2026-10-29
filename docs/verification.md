@@ -448,3 +448,12 @@ Weryfikacja: **311 testów pytest PASS w 146,02 s**, w tym 14 nowych przypadków
 Zastosowano migrację `security.0004_login_protection` do lokalnej bazy, po kopii SQLite w ignorowanym `.tools/backups/before-e8-*.sqlite3`. Porównano dotychczasowe kolumny i wiersze wszystkich istniejących tabel z kopią. Konta (w tym hashe), dokumenty, poświadczenia, ustawienia i sesje pozostały niezmienione; dopuszczono dodane automatycznie wpisy `django_content_type` i `auth_permission` nowych modeli. Próg lokalny wynosi 5. Nie wykonywano prób logowania do rzeczywistych kont użytkowniczki.
 
 M2-AC-01–04 mają wynik PASS automatyczny w `docs/module-2/acceptance.md`. T036–T038 zamykają E8; kolejne jest T039 w E9. Nie dodawano jeszcze CAPTCHA, honeypotu, pułapek Canarytokens ani limitu IP.
+
+
+## T039 Adapter Turnstile i konfiguracja środowisk
+
+Data: 2026-10-29. Dodano adapter Siteverify z HTTPS, timeoutem 5 sekund, zakazem przekierowań i limitem odpowiedzi 16 KiB. Serwer wymaga ścisłego sukcesu, hosta, akcji i świadomego strefy czasu challenge_ts: 0 <= wiek < 300 sekund. Brak/błąd konfiguracji, fałszywy/wygasły/zużyty token lub awaria oznaczają odmowę. Migracja 0005 dodaje CaptchaRedemption: unikalny SHA-256 zaakceptowanego tokenu i termin; atomowy zapis daje dodatkową ochronę przed replay i czyści wygasłe wpisy. Surowy token nie jest zapisywany. Zmiana modelu została najpierw opisana w specyfikacji 0.2 i planie 0.2.
+
+Konfiguracje local/production odczytują TURNSTILE_SITE_KEY, TURNSTILE_SECRET_KEY i TURNSTILE_ALLOWED_HOSTNAMES, test pozostaje izolowany. Produkcja odrzuca brak konfiguracji, wildcardy i oficjalne klucze testowe; nie ma przełącznika omijającego walidację. Filtr raportowania ukrywa token z POST, sekret dostawcy i przyszły URL Canarytokens. `.env.example` zawiera wyłącznie puste klucze.
+
+Weryfikacja: 49 testów adaptera i ustawień PASS. Obejmują granicę 300 sekund, niewłaściwy host/akcję, replay, brak tokenu, powtórzone pola, błędy sieci/JSON/statusu, zbyt dużą odpowiedź, konfigurację produkcji i redakcję sekretów. Ruff, formatowanie, kontrola Django i zgodności migracji: PASS. Nie wykonywano połączeń do Cloudflare i nie zmieniano prywatnego .env. Integrację formularzy dodadzą T040–T041; rzeczywista konfiguracja i odbiór przeglądarkowy pozostają w T053.
