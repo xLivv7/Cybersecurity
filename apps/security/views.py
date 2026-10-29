@@ -11,13 +11,16 @@ from django.utils import timezone
 from django.views.decorators.debug import sensitive_post_parameters, sensitive_variables
 from django.views.decorators.http import require_GET, require_http_methods
 
+from . import captcha
 from .constants import (
     MIN_LEVENSHTEIN_DISTANCE,
     MIN_PASSWORD_LENGTH,
     PASSWORD_HISTORY_SIZE,
 )
 from .forms import PasswordChangeForm
+from .login_keys import login_identity_key
 from .middleware import passive_view
+from .models import SecurityEvent
 from .selectors import get_security_settings
 from .sessions import access_required, get_access
 
@@ -54,27 +57,40 @@ def session_status(request):
 
 @sensitive_variables()
 def _password_change(request):
+    action = (
+        "password_required"
+        if request.access_context["scope"] == "limited"
+        else "password_change"
+    )
     form = PasswordChangeForm(
         request.POST if request.method == "POST" else None,
         user=request.access_user,
         context=request.access_context,
     )
     if request.method == "POST" and form.is_valid():
-        try:
-            form.save()
-        except ValidationError as error:
-            if hasattr(error, "error_dict"):
-                for name, errors in error.error_dict.items():
-                    form.add_error(name if name in form.fields else None, errors)
-            else:
-                form.add_error(None, error)
+        if not captcha.validate_request(request, action):
+            SecurityEvent.objects.create(
+                category="captcha_rejected",
+                identity_key=login_identity_key(request.access_user.username),
+            )
+            form.add_error(None, captcha.CAPTCHA_ERROR)
         else:
-            auth.logout(request)
-            return redirect("/login/?changed=1")
+            try:
+                form.save()
+            except ValidationError as error:
+                if hasattr(error, "error_dict"):
+                    for name, errors in error.error_dict.items():
+                        form.add_error(name if name in form.fields else None, errors)
+                else:
+                    form.add_error(None, error)
+            else:
+                auth.logout(request)
+                return redirect("/login/?changed=1")
     return render(
         request,
         "security/password_change.html",
         {
+            **captcha.widget_context(request, action),
             "form": form,
             "limited": request.access_context["scope"] == "limited",
             "policy": get_security_settings(),
@@ -85,14 +101,18 @@ def _password_change(request):
     )
 
 
-@sensitive_post_parameters("old_secret", "new_secret", "confirmation")
+@sensitive_post_parameters(
+    "old_secret", "new_secret", "confirmation", "cf-turnstile-response"
+)
 @access_required("limited")
 @require_http_methods(["GET", "POST"])
 def password_required(request):
     return _password_change(request)
 
 
-@sensitive_post_parameters("old_secret", "new_secret", "confirmation")
+@sensitive_post_parameters(
+    "old_secret", "new_secret", "confirmation", "cf-turnstile-response"
+)
 @access_required("full")
 @require_http_methods(["GET", "POST"])
 def password_change(request):

@@ -1,6 +1,6 @@
 # Specyfikacja ochrony przed botami i wyciekiem danych
 
-Status: E9 w realizacji; ukończono T040, następne T041
+Status: E9 w realizacji; ukończono T041, następne T042
 Wersja: 0.2
 Data: 2026-10-29
 Podstawa: [załącznik i decyzje](source.md), aplikacja modułu 1 w commicie `1cf5075`.

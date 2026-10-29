@@ -1,7 +1,7 @@
 # Zadania modułu ochrony przed botami i wyciekiem danych
 
-Status: E9 w realizacji; 5/20 wykonanych, w tym 5/18 obowiązkowych i 0/2 dodatkowych
-Wersja: 0.6
+Status: E9 w realizacji; 6/20 wykonanych, w tym 6/18 obowiązkowych i 0/2 dodatkowych
+Wersja: 0.7
 Data: 2026-10-29
 Podstawa: [specyfikacja 0.2](spec.md), [plan 0.2](plan.md), [źródło wymagań](source.md).
 
@@ -75,13 +75,15 @@ Kontynuujemy numerację po T035. Pole wyboru oznacza wykonanie i weryfikację, n
 
 ### T041 CAPTCHA w każdej ścieżce zmiany hasła
 
-- [ ] Chronić formularz standardowy i wszystkie warianty wymaganej zmiany.
+- [x] Chronić formularz standardowy i wszystkie warianty wymaganej zmiany.
 
 **Zakres:** akcje widgetu `password_change` i `password_required`, formularze INITIAL/RESET/EXPIRED, nowy token po odmowie. CAPTCHA poprzedza usługę zmiany hasła. Opisać konfigurację przed pierwszym logowaniem ADMIN i zachowanie przy awarii dostawcy; komendy lokalnego operatora nie dostają CAPTCHA.
 
 **Zależności:** T039–T040.
 **Wymagania:** M2-CAP-02–06; M2-AC-06.
 **Gotowe, gdy:** brak/błąd tokenu w każdym kontekście pozostawia hash, historię, wersję sesji i poświadczenie tymczasowe bez zmian; poprawna operacja nadal wymaga ponownego logowania.
+
+**Wykonano 2026-10-29:** implementacja i odpowiednie testy zakończone; wyniki i ograniczenia odbioru zapisano w `docs/verification.md`.
 
 ### T042 Jednorazowość tokenów i regresja formularzy
 

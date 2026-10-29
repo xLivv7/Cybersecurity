@@ -466,3 +466,12 @@ Data: 2026-10-29. Formularz ma opcjonalny HiddenInput website z wyłączonym aut
 Weryfikacja: 40 testów logowania, CAPTCHA, sesji i limitów PASS, w tym rzeczywiste wyścigi SQLite. Nowe testy bez auto-tokenów sprawdzają brak/niepoprawny token, honeypot przed dostawcą/hasłem, blokadę przed dostawcą, replay, CSRF i brak konfiguracji. Ruff, formatowanie, kontrola Django/migracji i składni JS: PASS. Dostosowanie istniejących testów wykonano już w T040 (część planu T042), ponieważ od tej chwili wymagają tokenów: jawna fixture captcha_success w wybranych modułach nadaje unikalny token do POST, podmienia wyłącznie transport i nadal wykonuje prawdziwe kontrole adaptera oraz rejestr zużycia. Nie ma autouse, obejścia HTTP ani zmiany kodu produkcji na potrzeby testów.
 
 Instrukcja konfiguracji i pierwszego logowania ADMIN: `docs/module-2/turnstile.md`. Nie dodawano kluczy do prywatnego .env i nie wykonywano realnych wyzwań Cloudflare. T041 ochroni formularze zmiany hasła; T042 uzupełni testy jednorazowości i skryptu.
+
+
+## T041 CAPTCHA w każdej ścieżce zmiany hasła
+
+Data: 2026-10-29. Formularze password/change i password/required korzystają ze wspólnego widgetu, odpowiednio akcji password_change i password_required. Wymagana zmiana obejmuje INITIAL, RESET oraz EXPIRED. Walidacja CAPTCHA następuje przed usługą zmiany hasła; odmowa zapisuje jedynie kategorię zdarzenia i korelację HMAC. Poprawna zmiana nadal unieważnia sesje i wymaga ponownego logowania. Token jest objęty maskowaniem parametrów debugowania.
+
+Weryfikacja: 36 testów CAPTCHA hasła, istniejących formularzy i ochrony sesji PASS. Nowych 16 przypadków obejmuje cztery konteksty: brak, błąd i ponowne użycie tokenu logowania nie wywołują usługi, nie zmieniają żadnego pola użytkownika, historii lub poświadczenia tymczasowego; poprawny token zmienia hasło i kończy sesję. HTML nie zwraca żadnego wpisanego hasła. Ruff, formatowanie i kontrole Django/migracji: PASS.
+
+Instrukcja `docs/module-2/turnstile.md` obejmuje konfigurację przed pierwszą zmianą ADMIN, awarię dostawcy oraz lokalne komendy operatora, które pozostają bez widgetu. Nie zmieniano ich działania ani prywatnego .env. Rzeczywiste klucze i odbiór przeglądarkowy pozostają osobnym T053.
